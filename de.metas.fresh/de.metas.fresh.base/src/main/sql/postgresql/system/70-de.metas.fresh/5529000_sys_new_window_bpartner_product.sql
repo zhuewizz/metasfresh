@@ -939,11 +939,6 @@ UPDATE AD_Column SET IsSelectionColumn='Y',Updated=TO_TIMESTAMP('2019-08-16 18:5
 UPDATE AD_Column SET IsSelectionColumn='Y', IsUpdateable='N',Updated=TO_TIMESTAMP('2019-08-16 18:54:05','YYYY-MM-DD HH24:MI:SS'),UpdatedBy=100 WHERE AD_Column_ID=10171
 ;
 
--- 2019-08-16T18:54:09.715
--- URL zum Konzept
-UPDATE AD_Column SET IsSelectionColumn='Y',Updated=TO_TIMESTAMP('2019-08-16 18:54:09','YYYY-MM-DD HH24:MI:SS'),UpdatedBy=100 WHERE AD_Column_ID=564634
-;
-
 -- 2019-08-16T18:54:21.196
 -- URL zum Konzept
 UPDATE AD_Column SET IsSelectionColumn='Y',Updated=TO_TIMESTAMP('2019-08-16 18:54:21','YYYY-MM-DD HH24:MI:SS'),UpdatedBy=100 WHERE AD_Column_ID=549667
@@ -974,25 +969,6 @@ UPDATE AD_Column SET IsSelectionColumn='Y',Updated=TO_TIMESTAMP('2019-08-16 18:5
 UPDATE AD_Column SET IsSelectionColumn='Y',Updated=TO_TIMESTAMP('2019-08-16 18:54:28','YYYY-MM-DD HH24:MI:SS'),UpdatedBy=100 WHERE AD_Column_ID=549660
 ;
 
--- 2019-08-16T18:55:47.296
--- URL zum Konzept
-INSERT INTO AD_Field (AD_Client_ID,AD_Column_ID,AD_Field_ID,AD_Org_ID,AD_Tab_ID,ColumnDisplayLength,Created,CreatedBy,DisplayLength,EntityType,IncludedTabHeight,IsActive,IsDisplayed,IsDisplayedGrid,IsEncrypted,IsFieldOnly,IsHeading,IsReadOnly,IsSameLine,Name,SeqNo,SeqNoGrid,SortNo,SpanX,SpanY,Updated,UpdatedBy) VALUES (0,564634,582635,0,541841,0,TO_TIMESTAMP('2019-08-16 18:55:47','YYYY-MM-DD HH24:MI:SS'),100,0,'U',0,'Y','Y','Y','N','N','N','N','N','Lager',350,10,0,1,1,TO_TIMESTAMP('2019-08-16 18:55:47','YYYY-MM-DD HH24:MI:SS'),100)
-;
-
--- 2019-08-16T18:55:47.301
--- URL zum Konzept
-INSERT INTO AD_Field_Trl (AD_Language,AD_Field_ID, Description,Help,Name, IsTranslated,AD_Client_ID,AD_Org_ID,Created,Createdby,Updated,UpdatedBy) SELECT l.AD_Language, t.AD_Field_ID, t.Description,t.Help,t.Name, 'N',t.AD_Client_ID,t.AD_Org_ID,t.Created,t.Createdby,t.Updated,t.UpdatedBy FROM AD_Language l, AD_Field t WHERE l.IsActive='Y'AND (l.IsSystemLanguage='Y' AND l.IsBaseLanguage='N') AND t.AD_Field_ID=582635 AND NOT EXISTS (SELECT 1 FROM AD_Field_Trl tt WHERE tt.AD_Language=l.AD_Language AND tt.AD_Field_ID=t.AD_Field_ID)
-;
-
--- 2019-08-16T18:56:44.059
--- URL zum Konzept
-INSERT INTO AD_UI_Element (AD_Client_ID,AD_Field_ID,AD_Org_ID,AD_Tab_ID,AD_UI_ElementGroup_ID,AD_UI_Element_ID,AD_UI_ElementType,Created,CreatedBy,IsActive,IsAdvancedField,IsAllowFiltering,IsDisplayed,IsDisplayedGrid,IsDisplayed_SideList,IsMultiLine,MultiLine_LinesCount,Name,SeqNo,SeqNoGrid,SeqNo_SideList,Updated,UpdatedBy) VALUES (0,582635,0,541841,542712,560439,'F',TO_TIMESTAMP('2019-08-16 18:56:43','YYYY-MM-DD HH24:MI:SS'),100,'Y','N','N','Y','N','N','N',0,'Lager',330,0,0,TO_TIMESTAMP('2019-08-16 18:56:43','YYYY-MM-DD HH24:MI:SS'),100)
-;
-
--- 2019-08-16T18:56:53.224
--- URL zum Konzept
-UPDATE AD_UI_Element SET IsDisplayedGrid='Y', SeqNoGrid=30,Updated=TO_TIMESTAMP('2019-08-16 18:56:53','YYYY-MM-DD HH24:MI:SS'),UpdatedBy=100 WHERE AD_UI_Element_ID=560439
-;
 
 -- 2019-08-16T18:56:53.225
 -- URL zum Konzept
@@ -1092,11 +1068,6 @@ UPDATE AD_UI_Element SET IsDisplayedGrid='Y', SeqNoGrid=20,Updated=TO_TIMESTAMP(
 -- 2019-08-16T19:02:02.819
 -- URL zum Konzept
 UPDATE AD_UI_Element SET IsDisplayedGrid='Y', SeqNoGrid=30,Updated=TO_TIMESTAMP('2019-08-16 19:02:02','YYYY-MM-DD HH24:MI:SS'),UpdatedBy=100 WHERE AD_UI_Element_ID=560416
-;
-
--- 2019-08-16T19:02:02.823
--- URL zum Konzept
-UPDATE AD_UI_Element SET IsDisplayedGrid='Y', SeqNoGrid=40,Updated=TO_TIMESTAMP('2019-08-16 19:02:02','YYYY-MM-DD HH24:MI:SS'),UpdatedBy=100 WHERE AD_UI_Element_ID=560439
 ;
 
 -- 2019-08-16T19:02:02.827
