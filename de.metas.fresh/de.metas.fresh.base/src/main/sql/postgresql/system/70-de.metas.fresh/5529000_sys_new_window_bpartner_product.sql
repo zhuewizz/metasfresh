@@ -1,3 +1,4 @@
+INSERT INTO public.ad_reference (ad_reference_id, ad_client_id, ad_org_id, isactive, created, createdby, updated, updatedby, name, description, help, validationtype, vformat, entitytype, isorderbyvalue) VALUES (540983, 0, 0, 'Y', '2019-04-22 14:29:16.000000 +02:00', 100, '2019-04-22 14:29:16.000000 +02:00', 100, 'M_Product_Value', null, '', 'T', null, 'D', 'N');
 -- 2019-08-16T18:30:45.219
 -- URL zum Konzept
 INSERT INTO AD_Window (AD_Client_ID,AD_Element_ID,AD_Org_ID,AD_Window_ID,Created,CreatedBy,EntityType,InternalName,IsActive,IsBetaFunctionality,IsDefault,IsEnableRemoteCacheInvalidation,IsOneInstanceOnly,IsSOTrx,Name,Processing,Updated,UpdatedBy,WindowType,WinHeight,WinWidth) VALUES (0,543080,0,540672,TO_TIMESTAMP('2019-08-16 18:30:45','YYYY-MM-DD HH24:MI:SS'),100,'U','Geschäftspartner-Produkt','Y','N','N','N','N','Y','Geschäftspartner-Produkt','N',TO_TIMESTAMP('2019-08-16 18:30:45','YYYY-MM-DD HH24:MI:SS'),100,'M',0,0)
