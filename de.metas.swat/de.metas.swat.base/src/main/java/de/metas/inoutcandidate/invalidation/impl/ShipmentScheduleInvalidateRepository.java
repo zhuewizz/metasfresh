@@ -13,6 +13,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import org.adempiere.ad.dao.IQueryFilter;
+import org.adempiere.ad.dao.impl.TypedSqlQuery;
 import org.adempiere.ad.dao.impl.TypedSqlQueryFilter;
 import org.adempiere.ad.trx.api.ITrx;
 import org.adempiere.ad.trx.api.ITrxListenerManager.TrxEventTiming;
@@ -608,6 +609,27 @@ public class ShipmentScheduleInvalidateRepository implements IShipmentScheduleIn
 
 		final List<Object> sqlParams = ImmutableList.of(pinstanceId);
 		return TypedSqlQueryFilter.of(sql, sqlParams);
+	}
+
+	@Override
+	public void invalidateSchedulesForQuery(final TypedSqlQuery<I_M_ShipmentSchedule> sqlSelectionQuery)
+	{
+		final String selectionWhereClause = sqlSelectionQuery.getWhereClause();
+
+		final String sql = "INSERT INTO " + M_SHIPMENT_SCHEDULE_RECOMPUTE + " (M_ShipmentSchedule_ID, Description) "
+				+ "\n SELECT " + I_M_ShipmentSchedule.COLUMNNAME_M_ShipmentSchedule_ID + ", ?"
+				+ "\n FROM " + I_M_ShipmentSchedule.Table_Name
+				+ "\n WHERE " + I_M_ShipmentSchedule.COLUMNNAME_Processed + "='N'"
+				+ "\n AND "
+				+ selectionWhereClause;
+
+		final int count = DB.executeUpdateEx(sql, new Object[] { sqlSelectionQuery }, ITrx.TRXNAME_ThreadInherited);
+		logger.debug("Invalidated {} M_ShipmentSchedules for Query", count, sqlSelectionQuery);
+		//
+		if (count > 0)
+		{
+			UpdateInvalidShipmentSchedulesWorkpackageProcessor.schedule();
+		}
 	}
 
 }
