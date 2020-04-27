@@ -12,6 +12,8 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import org.adempiere.ad.dao.ICompositeQueryFilter;
+import org.adempiere.ad.dao.IQueryBL;
 import org.adempiere.ad.dao.IQueryFilter;
 import org.adempiere.ad.dao.impl.TypedSqlQuery;
 import org.adempiere.ad.dao.impl.TypedSqlQueryFilter;
@@ -22,6 +24,7 @@ import org.adempiere.mm.attributes.AttributeId;
 import org.adempiere.mm.attributes.api.IAttributeDAO;
 import org.adempiere.mm.attributes.api.IAttributesBL;
 import org.adempiere.util.lang.Mutable;
+import org.compiere.model.IQuery;
 import org.compiere.model.I_M_AttributeInstance;
 import org.compiere.model.I_M_Locator;
 import org.compiere.util.DB;
@@ -41,6 +44,11 @@ import de.metas.inoutcandidate.invalidation.segments.IShipmentScheduleSegment;
 import de.metas.inoutcandidate.invalidation.segments.ShipmentScheduleAttributeSegment;
 import de.metas.inoutcandidate.model.I_M_ShipmentSchedule;
 import de.metas.interfaces.I_C_OrderLine;
+import de.metas.invoicecandidate.api.IInvoiceCandUpdateSchedulerRequest;
+import de.metas.invoicecandidate.api.IInvoiceCandUpdateSchedulerService;
+import de.metas.invoicecandidate.api.impl.InvoiceCandUpdateSchedulerRequest;
+import de.metas.invoicecandidate.model.I_C_Invoice_Candidate;
+import de.metas.invoicecandidate.model.I_C_Invoice_Candidate_Recompute;
 import de.metas.logging.LogManager;
 import de.metas.process.PInstanceId;
 import de.metas.product.ProductId;
@@ -612,8 +620,20 @@ public class ShipmentScheduleInvalidateRepository implements IShipmentScheduleIn
 	}
 
 	@Override
-	public void invalidateSchedulesForQuery(final TypedSqlQuery<I_M_ShipmentSchedule> sqlSelectionQuery)
+	public void invalidateSchedulesForQueryFilter(final IQueryFilter<I_M_ShipmentSchedule> shipmentScheduleQuery)
+
 	{
+		final ICompositeQueryFilter<I_M_ShipmentSchedule> filter = Services.get(IQueryBL.class).createCompositeQueryFilter(I_M_ShipmentSchedule.class)
+				.addFilter(shipmentScheduleQuery);
+		
+		
+
+		IQuery<I_M_ShipmentSchedule> query = Services.get(IQueryBL.class).createQueryBuilder(I_M_ShipmentSchedule.class)
+				.filter(filter)
+				.create();
+
+		final TypedSqlQuery<I_M_ShipmentSchedule> sqlSelectionQuery = TypedSqlQuery.cast(query);
+
 		final String selectionWhereClause = sqlSelectionQuery.getWhereClause();
 
 		final String sql = "INSERT INTO " + M_SHIPMENT_SCHEDULE_RECOMPUTE + " (M_ShipmentSchedule_ID, Description) "
@@ -630,6 +650,30 @@ public class ShipmentScheduleInvalidateRepository implements IShipmentScheduleIn
 		{
 			UpdateInvalidShipmentSchedulesWorkpackageProcessor.schedule();
 		}
+	}
+	
+	
+	@Override
+	public final void invalidateShipmentSchedulesFor(@NonNull final IQuery<I_M_ShipmentSchedule> icQuery)
+	{
+//		final int count = icQuery.insertDirectlyInto(I_M_Shipment_Recompute.class)
+//				.mapColumn(I_M_ShipmentSchedule.COLUMNNAME_M_ShipmentSchedule_ID, I_M_ShipmentSchedule.COLUMNNAME_M_ShipmentSchedule_ID)
+//				// NOTE: not setting the AD_PInstance_ID to null, because:
+//				// 1. that's the default
+//				// 2. there is an issue with the SQL INSERT that is rendered for NULL parameters, i.e. it cannot detect the database type for NULL
+//				// .mapColumnToConstant(I_C_Invoice_Candidate_Recompute.COLUMNNAME_AD_PInstance_ID, null)
+//				.execute()
+//				.getRowsInserted();
+//
+//		logger.debug("Invalidated {} invoice candidates for {}", new Object[] { count, icQuery });
+//
+//		//
+//		// Schedule an update for invalidated invoice candidates
+//		if (count > 0)
+//		{
+//			final IInvoiceCandUpdateSchedulerRequest request = InvoiceCandUpdateSchedulerRequest.of(icQuery.getCtx(), icQuery.getTrxName());
+//			Services.get(IInvoiceCandUpdateSchedulerService.class).scheduleForUpdate(request);
+//		}
 	}
 
 }
