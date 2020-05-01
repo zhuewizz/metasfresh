@@ -1,7 +1,7 @@
 ARG BASE_IMAGE_NAME=metasfresh-report
 
 #
-# The base images version to use can be set from outside using
+# The base image's version to use can be set from outside using
 # --build-arg BASE_IMAGE_VERSION=<value>
 # 
 # The default "latest" is usually the latest build from the release branch

@@ -1,0 +1,14 @@
+#disclaimer: This is just a dummy file
+services:
+  db:
+    image: nexus.metasfresh.com:6001/metasfresh/metasfresh-db:${docker-tag.metasfresh.version}
+  app:
+    image: nexus.metasfresh.com:6001/metasfresh/metasfresh-app:${docker-tag.metasfresh.version}
+  webapi:
+    image: nexus.metasfresh.com:6001/metasfresh/metasfresh-webui-api:${docker-tag.metasfresh.version}
+  webui:
+    image: nexus.metasfresh.com:6001/metasfresh/metasfresh-webui-dev:${docker-tag.metasfresh-webui-frontend.version}
+  rabbitmq:
+    image: rabbitmq:3.7.4
+  search:
+    image: elasticsearch:2.4

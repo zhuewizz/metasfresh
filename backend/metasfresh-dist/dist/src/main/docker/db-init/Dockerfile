@@ -1,7 +1,7 @@
 #FROM postgres:10.5
 FROM postgres:9.5
 
-LABEL maintainer="dev@metasfresh-com"
+MAINTAINER dev@metasfresh.com
 
 # to make sure that the cache is only used during one day, run docker build --build-arg CACHEBUST=$(date "+%Y-%m-%d")
 # that way we should get the latest updates since the release of our base image 
@@ -37,9 +37,12 @@ RUN chmod 700 /usr/local/bin/docker-entrypoint_init_only.sh
 RUN dos2unix /usr/local/bin/docker-entrypoint_init_only.sh
 RUN dos2unix /docker-entrypoint-initdb.d/provision_metasfresh_db.sh
 
-RUN ln -s /usr/local/bin/docker-entrypoint_init_only.sh / 
-ENTRYPOINT ["/docker-entrypoint_init_only.sh"]
+# create a link /docker-entrypoint_init_only.sh => /usr/local/bin/docker-entrypoint_init_only.sh to
+RUN ln -s /usr/local/bin/docker-entrypoint_init_only.sh /
 
+# see http://crosbymichael.com/dockerfile-best-practices.html on how ENTRYPOINT and CMD play together
+ENTRYPOINT ["/docker-entrypoint_init_only.sh"]
 CMD ["postgres"]
-#don't expose the port; we don't need/want external access
+
+#we don't need/want external access
 #EXPOSE 5432

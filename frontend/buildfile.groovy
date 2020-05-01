@@ -32,10 +32,6 @@ Map build(final MvnConf mvnConf, final Map scmVars, final boolean forceBuild=fal
 		
 		String BUILD_ARTIFACT_URL
 
-		//final def scmVars = checkout scm
-		//BUILD_GIT_SHA1 = scmVars.GIT_COMMIT
-		//sh 'git clean -d --force -x' // clean the workspace
-
 		sh "if [ -d ~/.npm ]; then rm -r ~/.npm; fi" // make sure the .npm folder isn't there. it caused us problems in the past when it contained "stale files".
 
 		def nodeHome = tool name: "$NODEJS_TOOL_NAME"
