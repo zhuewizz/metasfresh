@@ -1,33 +1,31 @@
-  #!/usr/bin/env groovy
-  // the "!#/usr/bin... is just to to help IDEs, GitHub diffs, etc properly detect the language and do syntax highlighting for you.
-  // thx to https://github.com/jenkinsci/pipeline-examples/blob/master/docs/BEST_PRACTICES.md
+#!/usr/bin/env groovy
+// the "!#/usr/bin... is just to to help IDEs, GitHub diffs, etc properly detect the language and do syntax highlighting for you.
+// thx to https://github.com/jenkinsci/pipeline-examples/blob/master/docs/BEST_PRACTICES.md
 
-  // note that we set a default version for this library in jenkins, so we don't have to specify it here
-  @Library('misc')
-  import de.metas.jenkins.DockerConf
-  import de.metas.jenkins.Misc
-  import de.metas.jenkins.MvnConf
+// note that we set a default version for this library in jenkins, so we don't have to specify it here
+@Library('misc')
+import de.metas.jenkins.DockerConf
+import de.metas.jenkins.Misc
+import de.metas.jenkins.MvnConf
 
-  Map build(final MvnConf mvnConf, final Map scmVars, final boolean forceBuild=false, final boolean forceSkip=false)
-  {
-    stage('Build frontend')
+Map build(final MvnConf mvnConf, final Map scmVars, final boolean forceBuild = false, final boolean forceSkip = false) {
+  stage('Build frontend')
     {
-      currentBuild.description="""${currentBuild.description}<br/>
+      currentBuild.description = """${currentBuild.description}<br/>
         <h2>Frontend</h2>
       """
-      if(forceSkip)
-      {
-        currentBuild.description= """${currentBuild.description}<p/>
+      if (forceSkip) {
+        currentBuild.description = """${currentBuild.description}<p/>
             Forced to skip.
             """
         echo "forced to skip frontend";
         return;
       }
-      def status = sh(returnStatus: true, script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} .| grep .") // see if anything at all changed in this folder
+      def status = sh(returnStatus: true, script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} .| grep .")
+      // see if anything at all changed in this folder
       echo "status of git dif command=${status}"
-      if(scmVars.GIT_COMMIT && scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT && status != 0 && !forceBuild)
-      {
-        currentBuild.description= """${currentBuild.description}<p/>
+      if (scmVars.GIT_COMMIT && scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT && status != 0 && !forceBuild) {
+        currentBuild.description = """${currentBuild.description}<p/>
             No changes happened in frontend.
             """
         echo "no changes happened in frontend; skip building frontend";
@@ -35,12 +33,13 @@
       }
 
       // set nodejs version defined in tool name of NodeJS installations located in Jenkins global plugins
-      final NODEJS_TOOL_NAME="nodejs-13"
+      final NODEJS_TOOL_NAME = "nodejs-13"
       echo "Setting NODEJS_TOOL_NAME=$NODEJS_TOOL_NAME"
 
       String BUILD_ARTIFACT_URL
 
-      sh "if [ -d ~/.npm ]; then rm -r ~/.npm; fi" // make sure the .npm folder isn't there. it caused us problems in the past when it contained "stale files".
+      sh "if [ -d ~/.npm ]; then rm -r ~/.npm; fi"
+      // make sure the .npm folder isn't there. it caused us problems in the past when it contained "stale files".
 
       def nodeHome = tool name: "$NODEJS_TOOL_NAME"
       env.PATH = "${nodeHome}/bin:${env.PATH}"
@@ -49,12 +48,9 @@
       sh 'yarn lint --quiet'
 
       sh "yarn add jest jest-junit --dev"
-      if(params.MF_MF_SKIP_UNIT_TESTS)
-      {
+      if (params.MF_MF_SKIP_UNIT_TESTS) {
         echo "params.MF_MF_SKIP_UNIT_TESTS=${params.MF_MF_SKIP_UNIT_TESTS}, so we skip the jest unit tests."
-      }
-      else
-      {
+      } else {
         sh 'yarn test --ci --reporters="default" --reporters="jest-junit"'
         //junit 'junit.xml' // commenting out; might be that it published "everything"
       }
@@ -80,7 +76,7 @@
       sh "mvn --settings ${mvnConf.settingsFile} ${mvnConf.resolveParams} -Dfile=webui-dist-${env.MF_VERSION}.tar.gz -Durl=${mvnConf.deployRepoURL} -DrepositoryId=${mvnConf.MF_MAVEN_REPO_ID} -DgroupId=de.metas.ui.web -DartifactId=metasfresh-webui-frontend -Dversion=${env.MF_VERSION} -Dpackaging=tar.gz -DgeneratePom=true org.apache.maven.plugins:maven-deploy-plugin:2.7:deploy-file"
 
       final misc = new de.metas.jenkins.Misc()
-      BUILD_ARTIFACT_URL="${mvnConf.deployRepoURL}/de/metas/ui/web/metasfresh-webui-frontend/${misc.urlEncode(env.MF_VERSION)}/metasfresh-webui-frontend-${misc.urlEncode(env.MF_VERSION)}.tar.gz"
+      BUILD_ARTIFACT_URL = "${mvnConf.deployRepoURL}/de/metas/ui/web/metasfresh-webui-frontend/${misc.urlEncode(env.MF_VERSION)}/metasfresh-webui-frontend-${misc.urlEncode(env.MF_VERSION)}.tar.gz"
 
       sh 'cp -r dist docker/nginx'
 
@@ -92,13 +88,13 @@
       );
       final String publishedDockerImageName = dockerBuildAndPush(materialDispoDockerConf)
 
-      currentBuild.description="""${currentBuild.description}<br/>
+      currentBuild.description = """${currentBuild.description}<br/>
       This build's main artifacts (if not yet cleaned up) are
   <ul>
   <li><a href=\"${BUILD_ARTIFACT_URL}\">metasfresh-webui-frontend-${env.MF_VERSION}.tar.gz</a></li>
   <li>a docker image with name <code>${publishedDockerImageName}</code>; Note that you can also use the tag <code>${misc.mkDockerTag(env.BRANCH_NAME)}_LATEST</code></li>
   </ul>"""
     }
-  }
+}
 
-  return this;
+return this;
