@@ -63,7 +63,7 @@
 
 				final DockerConf appDockerConf = reportDockerConf
 					.withArtifactName('metasfresh-app')
-					.withWorkDir('dist/target/docker/app')
+					.withWorkDir('metasfresh-dist/dist/target/docker/app')
 				dockerImages['app'] = dockerBuildAndPush(appDockerConf)
 
 				// postgres DB init container
@@ -122,7 +122,7 @@
 					'metasfresh-db', // artifactName
 					env.BRANCH_NAME, // branchName
 					env.MF_VERSION, // versionSuffix
-					'dist/src/main/docker/db', // workDir
+					'metasfresh-dist/dist/src/main/docker/db', // workDir
 					"--build-arg BASE_IMAGE=${dbInitDockerImageName}" // additionalBuildArgs
 			);
 			return dockerBuildAndPush(dbDockerConf)
