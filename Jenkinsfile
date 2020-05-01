@@ -22,19 +22,27 @@ final String MF_SQL_SEED_DUMP_URL_DEFAULT =
 properties([
 	parameters([
 		booleanParam(defaultValue: false,
-				description: 'If true, then rebuild everything, no matter if there were changes',
+				description: 'If true, then rebuild everything, no matter if there were changes since the last successful build',
 				name: 'MF_FORCE_FULL_BUILD'),
 
 		booleanParam(defaultValue: false,
-				description: 'If true, then don\'t build frontend, even, if there were changes',
+				description: 'If true, then don\'t build frontend, even if there were changes or <code>MF_FORCE_FULL_BUILD</code> is set to <code>true<code>',
 				name: 'MF_FORCE_SKIP_FRONTEND_BUILD'),
 
 		booleanParam(defaultValue: false,
-				description: 'If true, then don\'t build backend, even, if there were changes',
+				description: 'If true, then don\'t build backend, even if there were changes or <code>MF_FORCE_FULL_BUILD</code> is set to <code>true<code>',
 				name: 'MF_FORCE_SKIP_BACKEND_BUILD'),
 
+		booleanParam(defaultValue: false,
+				description: 'If true, then don\'t build misc services, even if there were changes or <code>MF_FORCE_FULL_BUILD</code> is set to <code>true<code>',
+				name: 'MF_FORCE_SKIP_MISC_SERVICES_BUILD'),
+
+		booleanParam(defaultValue: false,
+				description: 'If true, then don\'t build e2e, even if there were changes or <code>MF_FORCE_FULL_BUILD</code> is set to <code>true<code>',
+				name: 'MF_FORCE_SKIP_E2E_BUILD'),
+
 		string(defaultValue: MF_SQL_SEED_DUMP_URL_DEFAULT,
-				description: 'metasfresh database seed against which the build shall apply its migrate scripts for QA; leave empty to avoid this QA.',
+				description: 'metasfresh database seed against which the build shall apply its migrate scripts.',
 				name: 'MF_SQL_SEED_DUMP_URL'),
 	]),
 	pipelineTriggers([]),
@@ -105,12 +113,12 @@ try
 					dir('misc/services')
 					{
 						def miscServices = load('buildfile.groovy')
-						miscServices.build(mvnConf, scmVars, params.MF_FORCE_FULL_BUILD)
+						miscServices.build(mvnConf, scmVars, params.MF_FORCE_FULL_BUILD, params.MF_FORCE_SKIP_MISC_SERVICES_BUILD)
 					}
 					dir('e2e')
 					{
 						def e2eBuildFile = load('buildfile.groovy')
-						e2eBuildFile.build(scmVars, params.MF_FORCE_FULL_BUILD)
+						e2eBuildFile.build(scmVars, params.MF_FORCE_FULL_BUILD, params.MF_FORCE_SKIP_E2E_BUILD)
 					}
 					dir('distribution')
 					{

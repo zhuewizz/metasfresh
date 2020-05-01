@@ -6,7 +6,7 @@
 @Library('misc')
 import de.metas.jenkins.DockerConf
 
-def build(final Map scmVars, final boolean forceBuild=false)
+def build(final Map scmVars, final boolean forceBuild=false, final boolean forceSkip = false)
 {
 	// https://github.com/metasfresh/metasfresh/issues/2110 make version/build infos more transparent
 	//final String MF_VERSION = retrieveArtifactVersion(env.BRANCH_NAME, env.BUILD_NUMBER)
@@ -16,7 +16,15 @@ def build(final Map scmVars, final boolean forceBuild=false)
 		currentBuild.description="""${currentBuild.description}<br/>
 				<h2>e2e</h2>
 			"""
-		def status = sh(returnStatus: true, script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} .| grep .") // see if anything at all changed in this folder
+    if (forceSkip) {
+      currentBuild.description = """${currentBuild.description}<p/>
+            Forced to skip.
+            """
+      echo "forced to skip e2e";
+      return;
+    }
+
+    def status = sh(returnStatus: true, script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} .| grep .") // see if anything at all changed in this folder
 		echo "status of git dif command=${status}"
 		if(scmVars.GIT_COMMIT && scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT && status != 0 && !forceBuild)
 		{

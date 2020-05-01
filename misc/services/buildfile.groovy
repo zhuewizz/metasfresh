@@ -8,13 +8,20 @@ import de.metas.jenkins.DockerConf
 import de.metas.jenkins.Misc
 import de.metas.jenkins.MvnConf
 
-def build(final MvnConf mvnConf, final Map scmVars, final boolean forceBuild=false)
+def build(final MvnConf mvnConf, final Map scmVars, final boolean forceBuild=false, final boolean forceSkip = false)
 {
     stage('Build misc services')
     {
 	currentBuild.description= """${currentBuild.description}<p/>
 			<h2>misc services</h2>
 		"""
+		if (forceSkip) {
+			currentBuild.description = """${currentBuild.description}<p/>
+            Forced to skip.
+            """
+			echo "forced to skip misc services";
+			return;
+		}
 
 		dir('edi')
 		{
