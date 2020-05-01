@@ -121,13 +121,12 @@
 			// commit the DB that has the migration scripts, and build our metasfresh-db based on it
 			sh "docker commit ${dbContainerName} ${dbWithMigrationScriptsImage}"
 			final DockerConf dbDockerConf = new DockerConf(
-					artifactName: 'metasfresh-db',
-					branchName: env.BRANCH_NAME,
-					versionSuffix: env.MF_VERSION,
-					workDir: 'metasfresh-dist/dist/src/main/docker/db',
-					additionalBuildArgs: "--build-arg BASE_IMAGE=${dbWithMigrationScriptsImage}",
-					pullOnBuild: false
-			);
+					'metasfresh-db', // artifactName
+					env.BRANCH_NAME, // branchName
+					env.MF_VERSION, // versionSuffix
+					'metasfresh-dist/dist/src/main/docker/db', // workDir
+					"--build-arg BASE_IMAGE=${dbWithMigrationScriptsImage}" // additionalBuildArgs
+			).withPullOnBuild(false);
 			return dockerBuildAndPush(dbDockerConf)
 		//}
 	}
