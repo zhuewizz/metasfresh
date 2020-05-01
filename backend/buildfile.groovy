@@ -113,19 +113,19 @@
 			}
 			final def misc = new de.metas.jenkins.Misc()
 			final String buildSpecificTag = misc.mkDockerTag("${env.BRANCH_NAME}-${env.MF_VERSION}")
-			final String dbContainerName = "metasfresh-db-${buildSpecificTag}"
-
+			final String dbContainerName = "metasfresh_db-${buildSpecificTag}"
+			final String dbWithMigrationScriptsImage = "db_with_migration_scripts:${buildSpecificTag}"
 			// run the pg-init docker image and apply our migration scripts;
 			sh "docker run -e \"URL_SEED_DUMP=${sqlSeedDumpURL}\" -e \"URL_MIGRATION_SCRIPTS_PACKAGE=${metasfreshDistSQLOnlyURL}\" --name ${dbContainerName} ${dbInitDockerImageName}"
 
 			// commit the DB that has the migration scripts, and build our metasfresh-db based on it
-			sh "docker commit ${dbContainerName} dbWithMigrationScripts_${buildSpecificTag}"
+			sh "docker commit ${dbContainerName} ${dbWithMigrationScriptsImage}"
 			final DockerConf dbDockerConf = new DockerConf(
 					'metasfresh-db', // artifactName
 					env.BRANCH_NAME, // branchName
 					env.MF_VERSION, // versionSuffix
 					'metasfresh-dist/dist/src/main/docker/db', // workDir
-					"--build-arg BASE_IMAGE=dbWithMigrationScripts_${buildSpecificTag}" // additionalBuildArgs
+					"--build-arg BASE_IMAGE=${dbWithMigrationScriptsImage}" // additionalBuildArgs
 			);
 			return dockerBuildAndPush(dbDockerConf)
 		//}
