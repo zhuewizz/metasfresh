@@ -102,8 +102,8 @@
 		final String dbInitDockerImageName,
 		final Map scmVars)
 	{
-		stage('Test SQL-Migrationscripts')
-		{
+		//stage('Test SQL-Migrationscripts') preparing the DB image is not a stage of its own, but part of "Build backend"
+		//{
 			def status = sh(returnStatus: true, script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} . | grep sql\$") // see if any *sql file changed in this folder
 			echo "status of git dif command=${status}"
 			if(scmVars.GIT_COMMIT && scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT && status != 0)
@@ -113,21 +113,22 @@
 			}
 			final def misc = new de.metas.jenkins.Misc()
 			final String buildSpecificTag = misc.mkDockerTag("${env.BRANCH_NAME}-${env.MF_VERSION}")
+			final String dbContainerName = "metasfresh-db-${buildSpecificTag}"
 
-			// run the pg-init docker image to check that the migration scripts work; make sure to clean up afterwards
-			sh "docker run -e \"URL_SEED_DUMP=${sqlSeedDumpURL}\" -e \"URL_MIGRATION_SCRIPTS_PACKAGE=${metasfreshDistSQLOnlyURL}\" ${dbInitDockerImageName}"
-			sh "docker commit ${dbInitDockerImageName}"
+			// run the pg-init docker image and apply our migration scripts;
+			sh "docker run -e \"URL_SEED_DUMP=${sqlSeedDumpURL}\" -e \"URL_MIGRATION_SCRIPTS_PACKAGE=${metasfreshDistSQLOnlyURL}\" --name ${dbContainerName} ${dbInitDockerImageName}"
 
+			// commit the DB that has the migration scripts, and build our metasfresh-db based on it
+			sh "docker commit ${dbContainerName} dbWithMigrationScripts_${buildSpecificTag}"
 			final DockerConf dbDockerConf = new DockerConf(
 					'metasfresh-db', // artifactName
 					env.BRANCH_NAME, // branchName
 					env.MF_VERSION, // versionSuffix
 					'metasfresh-dist/dist/src/main/docker/db', // workDir
-					"--build-arg BASE_IMAGE=${dbInitDockerImageName}" // additionalBuildArgs
+					"--build-arg BASE_IMAGE=dbWithMigrationScripts_${buildSpecificTag}" // additionalBuildArgs
 			);
 			return dockerBuildAndPush(dbDockerConf)
-
-		}
+		//}
 	}
 
 	return this;
