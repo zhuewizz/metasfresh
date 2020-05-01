@@ -111,7 +111,7 @@
 				echo "no *.sql changes happened; skip applying SQL migration scripts";
 				return;
 			}
-
+			final def misc = new de.metas.jenkins.Misc()
 			final String buildSpecificTag = misc.mkDockerTag("${env.BRANCH_NAME}-${env.MF_VERSION}")
 
 			// run the pg-init docker image to check that the migration scripts work; make sure to clean up afterwards
