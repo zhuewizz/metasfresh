@@ -25,6 +25,14 @@ properties([
 				description: 'If true, then rebuild everything, no matter if there were changes',
 				name: 'MF_FORCE_FULL_BUILD'),
 
+		booleanParam(defaultValue: false,
+				description: 'If true, then don\'t build frontend, even, if there were changes',
+				name: 'MF_FORCE_SKIP_FRONTEND_BUILD'),
+
+		booleanParam(defaultValue: false,
+				description: 'If true, then don\'t build backend, even, if there were changes',
+				name: 'MF_FORCE_SKIP_BACKEND_BUILD'),
+
 		string(defaultValue: MF_SQL_SEED_DUMP_URL_DEFAULT,
 				description: 'metasfresh database seed against which the build shall apply its migrate scripts for QA; leave empty to avoid this QA.',
 				name: 'MF_SQL_SEED_DUMP_URL'),
@@ -87,12 +95,12 @@ try
 					dir('frontend')
 					{
 						def frontendBuildFile = load('buildfile.groovy')
-						frontendBuildFile.build(mvnConf, scmVars, params.MF_FORCE_FULL_BUILD)
+						frontendBuildFile.build(mvnConf, scmVars, params.MF_FORCE_FULL_BUILD, params.MF_FORCE_SKIP_FRONTEND_BUILD)
 					}
 					dir('backend')
 					{
 						def backendBuildFile = load('buildfile.groovy')
-						backendBuildFile.build(mvnConf, scmVars, params.MF_FORCE_FULL_BUILD)
+						backendBuildFile.build(mvnConf, scmVars, params.MF_FORCE_FULL_BUILD, params.MF_FORCE_SKIP_BACKEND_BUILD)
 					}
 					dir('misc/services')
 					{

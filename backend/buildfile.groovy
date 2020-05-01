@@ -4,13 +4,21 @@
 	import de.metas.jenkins.Misc
 	import de.metas.jenkins.MvnConf
 
-	Map build(final MvnConf mvnConf, final Map scmVars, final boolean forceBuild=false)
+	Map build(final MvnConf mvnConf, final Map scmVars, final boolean forceBuild=false, final boolean forceSkip=false)
 	{
 			final dockerImages = [:]
 			final def misc = new de.metas.jenkins.Misc()
 
 			stage('Build backend')
 			{
+				if(forceSkip)
+				{
+					currentBuild.description= """${currentBuild.description}<p/>
+            Forced to skip.
+            """
+					echo "forced to skip backend";
+					return;
+				}
 				currentBuild.description= """${currentBuild.description}<p/>
 					<h2>Backend</h2>
 				"""
