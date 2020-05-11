@@ -135,7 +135,7 @@ public interface I_S_Issue
 	 * Set Project.
 	 * Financial Project
 	 *
-	 * <br>Type: TableDir
+	 * <br>Type: Search
 	 * <br>Mandatory: false
 	 * <br>Virtual Column: false
 	 */
@@ -145,7 +145,7 @@ public interface I_S_Issue
 	 * Get Project.
 	 * Financial Project
 	 *
-	 * <br>Type: TableDir
+	 * <br>Type: Search
 	 * <br>Mandatory: false
 	 * <br>Virtual Column: false
 	 */
@@ -250,47 +250,24 @@ public interface I_S_Issue
     public static final String COLUMNNAME_EstimatedEffort = "EstimatedEffort";
 
 	/**
-	 * Set External ID.
-	 *
-	 * <br>Type: String
-	 * <br>Mandatory: false
-	 * <br>Virtual Column: false
-	 */
-	public void setExternalId (java.lang.String ExternalId);
-
-	/**
-	 * Get External ID.
-	 *
-	 * <br>Type: String
-	 * <br>Mandatory: false
-	 * <br>Virtual Column: false
-	 */
-	public java.lang.String getExternalId();
-
-    /** Column definition for ExternalId */
-    public static final org.adempiere.model.ModelColumn<I_S_Issue, Object> COLUMN_ExternalId = new org.adempiere.model.ModelColumn<I_S_Issue, Object>(I_S_Issue.class, "ExternalId", null);
-    /** Column name ExternalId */
-    public static final String COLUMNNAME_ExternalId = "ExternalId";
-
-	/**
-	 * Set ExternalIssueNo.
+	 * Set External issue no.
 	 * External issue number ( e.g. github issue number )
 	 *
-	 * <br>Type: String
+	 * <br>Type: Number
 	 * <br>Mandatory: false
 	 * <br>Virtual Column: false
 	 */
-	public void setExternalIssueNo (java.lang.String ExternalIssueNo);
+	public void setExternalIssueNo (java.math.BigDecimal ExternalIssueNo);
 
 	/**
-	 * Get ExternalIssueNo.
+	 * Get External issue no.
 	 * External issue number ( e.g. github issue number )
 	 *
-	 * <br>Type: String
+	 * <br>Type: Number
 	 * <br>Mandatory: false
 	 * <br>Virtual Column: false
 	 */
-	public java.lang.String getExternalIssueNo();
+	public java.math.BigDecimal getExternalIssueNo();
 
     /** Column definition for ExternalIssueNo */
     public static final org.adempiere.model.ModelColumn<I_S_Issue, Object> COLUMN_ExternalIssueNo = new org.adempiere.model.ModelColumn<I_S_Issue, Object>(I_S_Issue.class, "ExternalIssueNo", null);
@@ -394,7 +371,7 @@ public interface I_S_Issue
     public static final String COLUMNNAME_IsEffortIssue = "IsEffortIssue";
 
 	/**
-	 * Set IssueEffort (H:mm).
+	 * Set Issue effort (H:mm).
 	 * Time spent directly on this task in H:mm format.
 	 *
 	 * <br>Type: String
@@ -404,7 +381,7 @@ public interface I_S_Issue
 	public void setIssueEffort (java.lang.String IssueEffort);
 
 	/**
-	 * Get IssueEffort (H:mm).
+	 * Get Issue effort (H:mm).
 	 * Time spent directly on this task in H:mm format.
 	 *
 	 * <br>Type: String

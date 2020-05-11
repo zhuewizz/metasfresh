@@ -13,25 +13,31 @@ Map build(final MvnConf mvnConf, final Map scmVars, final boolean forceBuild = f
                 currentBuild.description = """${currentBuild.description}<p/>
 					<h2>Backend</h2>
 				"""
-                if (forceSkip) {
-                    currentBuild.description = """${currentBuild.description}<p/>
-            Forced to skip.
-            """
-                    echo "forced to skip backend";
-                    return;
-                }
-                def status = sh(returnStatus: true, script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} . | grep .") // see if anything at all changed in this folder
-                echo "status of git dif command=${status}"
-                if (scmVars.GIT_COMMIT && scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT && status != 0 && !forceBuild) {
-                    currentBuild.description = """${currentBuild.description}<p/>
+
+			def anyFileChanged
+			try {
+				def vgitout = sh(returnStdout: true, script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} .").trim()
+				echo "git diff output (modified files):\n>>>>>\n${vgitout}\n<<<<<"
+				anyFileChanged = !vgitout.isEmpty()
+				// see if anything at all changed in this folder
+				echo "Any file changed compared to last build: ${anyFileChanged}"
+			} catch (ignored) {
+				echo "git diff error => assume something must have changed"
+				anyFileChanged = true
+			}
+
+			if(scmVars.GIT_COMMIT && scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT && !anyFileChanged && !forceBuild)
+			{
+				currentBuild.description= """${currentBuild.description}<p/>
 					No changes happened in backend.
 					"""
                     echo "no changes happened in backend; skip building backend";
                     return;
                 }
-                final String VERSIONS_PLUGIN = 'org.codehaus.mojo:versions-maven-plugin:2.7' // make sure we know which plugin version we run
 
-                // set the root-pom's parent pom. Although the parent pom is avaialbe via relativePath, we need it to be this build's version then the root pom is deployed to our maven-repo
+			final String VERSIONS_PLUGIN='org.codehaus.mojo:versions-maven-plugin:2.7' // make sure we know which plugin version we run
+
+			// set the root-pom's parent pom. Although the parent pom is available via relativePath, we need it to be this build's version then the root pom is deployed to our maven-repo
                 sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode -DparentVersion=${env.MF_VERSION} ${mvnConf.resolveParams} ${VERSIONS_PLUGIN}:update-parent"
 
                 // set the artifact version of everything below ${mvnConf.pomFile}
@@ -108,9 +114,21 @@ String applySQLMigrationScripts(
         final Map scmVars) {
     //stage('Test SQL-Migrationscripts') preparing the DB image is not a stage of its own, but part of "Build backend"
     //{
-    def status = sh(returnStatus: true, script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} . | grep sql\$") // see if any *sql file changed in this folder
-    echo "status of git dif command=${status}"
-    if (scmVars.GIT_COMMIT && scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT && status != 0) {
+
+		def anyFileChanged
+		try {
+			def vgitout = sh(returnStdout: true, script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} .").trim()
+			echo "git diff output (modified files):\n>>>>>\n${vgitout}\n<<<<<"
+			anyFileChanged = !vgitout.contains(".sql") // see if any .sql file changed in this folder
+			// see if anything at all changed in this folder
+			echo "Any *.sql* file changed compared to last build: ${anyFileChanged}"
+		} catch (ignored) {
+			echo "git diff error => assume something must have changed"
+			anyFileChanged = true
+		}
+
+		if(scmVars.GIT_COMMIT && scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT && !anyFileChanged)
+		{
         echo "no *.sql changes happened; skip applying SQL migration scripts";
         return;
     }

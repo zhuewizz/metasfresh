@@ -15,7 +15,7 @@ public class X_S_Issue extends org.compiere.model.PO implements I_S_Issue, org.c
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = -1040725648L;
+	private static final long serialVersionUID = 1557635338L;
 
     /** Standard Constructor */
     public X_S_Issue (Properties ctx, int S_Issue_ID, String trxName)
@@ -198,39 +198,26 @@ public class X_S_Issue extends org.compiere.model.PO implements I_S_Issue, org.c
 		return bd;
 	}
 
-	/** Set External ID.
-		@param ExternalId External ID	  */
-	@Override
-	public void setExternalId (java.lang.String ExternalId)
-	{
-		set_Value (COLUMNNAME_ExternalId, ExternalId);
-	}
-
-	/** Get External ID.
-		@return External ID	  */
-	@Override
-	public java.lang.String getExternalId () 
-	{
-		return (java.lang.String)get_Value(COLUMNNAME_ExternalId);
-	}
-
-	/** Set ExternalIssueNo.
+	/** Set External issue no.
 		@param ExternalIssueNo 
 		External issue number ( e.g. github issue number )
 	  */
 	@Override
-	public void setExternalIssueNo (java.lang.String ExternalIssueNo)
+	public void setExternalIssueNo (java.math.BigDecimal ExternalIssueNo)
 	{
 		set_Value (COLUMNNAME_ExternalIssueNo, ExternalIssueNo);
 	}
 
-	/** Get ExternalIssueNo.
+	/** Get External issue no.
 		@return External issue number ( e.g. github issue number )
 	  */
 	@Override
-	public java.lang.String getExternalIssueNo () 
+	public java.math.BigDecimal getExternalIssueNo () 
 	{
-		return (java.lang.String)get_Value(COLUMNNAME_ExternalIssueNo);
+		BigDecimal bd = (BigDecimal)get_Value(COLUMNNAME_ExternalIssueNo);
+		if (bd == null)
+			 return BigDecimal.ZERO;
+		return bd;
 	}
 
 	/** Set Invoiceable effort.
@@ -301,7 +288,7 @@ public class X_S_Issue extends org.compiere.model.PO implements I_S_Issue, org.c
 		return false;
 	}
 
-	/** Set IssueEffort (H:mm).
+	/** Set Issue effort (H:mm).
 		@param IssueEffort 
 		Time spent directly on this task in H:mm format.
 	  */
@@ -311,7 +298,7 @@ public class X_S_Issue extends org.compiere.model.PO implements I_S_Issue, org.c
 		set_Value (COLUMNNAME_IssueEffort, IssueEffort);
 	}
 
-	/** Get IssueEffort (H:mm).
+	/** Get Issue effort (H:mm).
 		@return Time spent directly on this task in H:mm format.
 	  */
 	@Override

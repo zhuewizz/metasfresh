@@ -63,6 +63,7 @@ import de.metas.location.ILocationBL;
 import de.metas.location.impl.AddressBuilder;
 import de.metas.organization.OrgId;
 import de.metas.payment.PaymentRule;
+import de.metas.payment.paymentterm.PaymentTermId;
 import de.metas.user.User;
 import de.metas.user.UserId;
 import de.metas.user.UserRepository;
@@ -438,6 +439,8 @@ public class BPartnerBL implements IBPartnerBL
 	{
 		Check.assumeNotNull(template, "Parameter template is not null");
 		Check.assume(!template.isProcessed(), "{} not already processed", template);
+		Check.assume(template.getC_Location_ID() > 0, "{} > 0", template); // just to make sure&explicit
+
 		Services.get(ITrxManager.class).assertThreadInheritedTrxExists();
 
 		//
@@ -658,6 +661,16 @@ public class BPartnerBL implements IBPartnerBL
 		final I_C_BPartner bpartner = getById(bpartnerId);
 		final ShipmentAllocationBestBeforePolicy bestBeforePolicy = ShipmentAllocationBestBeforePolicy.ofNullableCode(bpartner.getShipmentAllocation_BestBefore_Policy());
 		return bestBeforePolicy != null ? bestBeforePolicy : ShipmentAllocationBestBeforePolicy.Expiring_First;
+	}
+
+	@Override
+	public Optional<PaymentTermId> getPaymentTermIdForBPartner(@NonNull final BPartnerId bpartnerId, @NonNull final SOTrx soTrx)
+	{
+		final I_C_BPartner bpartner = bpartnersRepo.getById(bpartnerId);
+
+		return soTrx.isSales()
+				? PaymentTermId.optionalOfRepoId(bpartner.getC_PaymentTerm_ID())
+				: PaymentTermId.optionalOfRepoId(bpartner.getPO_PaymentTerm_ID());
 	}
 
 	@Override

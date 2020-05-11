@@ -43,7 +43,7 @@ public class Issue
 	String htmlUrl;
 
 	@JsonProperty("number")
-	String number;
+	Integer number;
 
 	@JsonProperty("title")
 	String title;
@@ -62,6 +62,14 @@ public class Issue
 
 	@JsonProperty("body")
 	String body;
+
+	@JsonProperty("pull_request")
+	PullRequest pullRequest;
+
+	public boolean isPullRequest()
+	{
+		return pullRequest != null;
+	}
 }
 
 
