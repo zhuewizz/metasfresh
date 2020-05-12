@@ -90,16 +90,19 @@ Map build(final MvnConf mvnConf, final Map scmVars, final boolean forceBuild = f
                         metasfreshDistSQLOnlyURL,
                         dockerImages['dbInit'],
                         scmVars)
+                
+                final String dbImageDescr = dockerImages['db'] ? "<li><code>${dockerImages['db']}</code> has applied already the migration scripts from this build </li>" : "";
+                final String dbInitImageDescr = dockerImages['dbInit'] ? "<li><code>${dockerImages['dbInit']}</code> which was used to build the DB image </li>" : "";
 
                 currentBuild.description = """${currentBuild.description}<br/>
 					This build created the following deployable docker images 
 					<ul>
 					<li><code>${dockerImages['app']}</code></li>
 					<li><code>${dockerImages['webuiApi']}</code></li>
-					<li><code>${dockerImages['db']}</code></li> has applied already the migration scripts from this build
+					${dbImageDescr}
 					<li><code>${dockerImages['report']}</code> that can be used as <b>base image</b> for custom metasfresh-report docker images</li>
 					<li><code>${dockerImages['msv3Server']}</code></li>
-					<li><code>${dockerImages['dbInit']}</code></li> which was used to build the DB image
+					${dbInitImageDescr}
 					</ul>
 					"""
             } // stage build Backend
@@ -115,23 +118,24 @@ String applySQLMigrationScripts(
     //stage('Test SQL-Migrationscripts') preparing the DB image is not a stage of its own, but part of "Build backend"
     //{
 
-		def anyFileChanged
-		try {
-			def vgitout = sh(returnStdout: true, script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} .").trim()
-			echo "git diff output (modified files):\n>>>>>\n${vgitout}\n<<<<<"
-			anyFileChanged = !vgitout.contains(".sql") // see if any .sql file changed in this folder
-			// see if anything at all changed in this folder
-			echo "Any *.sql* file changed compared to last build: ${anyFileChanged}"
-		} catch (ignored) {
-			echo "git diff error => assume something must have changed"
-			anyFileChanged = true
-		}
+	def anyFileChanged
+	try {
+		def vgitout = sh(returnStdout: true, script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} .").trim()
+		echo "git diff output (modified files):\n>>>>>\n${vgitout}\n<<<<<"
+		anyFileChanged = !vgitout.contains(".sql") // see if any .sql file changed in this folder
+		// see if anything at all changed in this folder
+		echo "Any *.sql* file changed compared to last build: ${anyFileChanged}"
+	} catch (ignored) {
+		echo "git diff error => assume something must have changed"
+		anyFileChanged = true
+	}
 
-		if(scmVars.GIT_COMMIT && scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT && !anyFileChanged)
-		{
-        echo "no *.sql changes happened; skip applying SQL migration scripts";
-        return;
-    }
+	if(scmVars.GIT_COMMIT && scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT && !anyFileChanged)
+	{
+                echo "no *.sql changes happened; skip applying SQL migration scripts";
+                return;
+        }
+
     final def misc = new de.metas.jenkins.Misc()
     final String buildSpecificTag = misc.mkDockerTag("${env.BRANCH_NAME}-${env.MF_VERSION}")
     final String dbContainerName = "metasfresh_db-${buildSpecificTag}"
