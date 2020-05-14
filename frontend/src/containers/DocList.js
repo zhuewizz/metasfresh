@@ -12,6 +12,8 @@ import {
 import Container from '../components/Container';
 import DocumentList from '../components/app/DocumentList';
 import Overlay from '../components/app/Overlay';
+import _ from 'lodash';
+import { diff } from 'deep-object-diff';
 
 /**
  * @file Class based component.
@@ -19,6 +21,23 @@ import Overlay from '../components/app/Overlay';
  * @extends Component
  */
 class DocList extends Component {
+  shouldComponentUpdate(nextProps) {
+    console.log(diff(nextProps, this.props))
+    let doRender = true;
+   
+    // -- Uncomment below code to stop reRendering. There are  un-necessary re-renderings on DocList and
+    // let omitProps = ['dispatch', 'breadcrumb'];
+    // Object.keys(this.props).forEach((activeProperty) => {
+    //     // console.log(`PROPS_${activeProperty}:`, this.props[activeProperty]);
+    //     // console.log(`NEXT_${activeProperty}:`, nextProps[activeProperty]); 
+    //   if (!omitProps.includes(activeProperty) && _.isEqual(nextProps[activeProperty], this[activeProperty])) {
+    //     doRender = false;
+    //   }
+    // });
+
+    return doRender;
+  }
+
   componentDidMount = () => {
     const { dispatch, windowType, latestNewDocument, query } = this.props;
 
@@ -42,6 +61,9 @@ class DocList extends Component {
     if (prevProps.windowType !== windowType) {
       dispatch(getWindowBreadcrumb(windowType));
     }
+    Object.keys(this.props).forEach((activeProperty) => {
+      this[activeProperty] = this.props[activeProperty];
+    });
   };
 
   /**
@@ -63,6 +85,7 @@ class DocList extends Component {
   };
 
   render() {
+    console.log('RENDER');
     const {
       windowType,
       breadcrumb,
