@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { Map as iMap } from 'immutable';
 import Moment from 'moment-timezone';
 import currentDevice from 'current-device';
+import qs from 'qs';
 
 import { getItemsByProperty, nullToEmptyStrings } from './index';
 import { getSelectionInstant } from '../reducers/windowHandler';
@@ -37,7 +38,7 @@ const DLpropTypes = {
  * @prop {object} DLcontextTypes
  */
 const DLmapStateToProps = (state, { location, ...props }) => {
-  const { query } = location;
+  const query = qs.parse(location.search);
   const identifier = props.isModal ? props.defaultViewId : props.windowType;
   let master = state.viewHandler.views[identifier];
 

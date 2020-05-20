@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom';
+import qs from 'qs';
 import classnames from 'classnames';
 
 import { updateUri } from '../actions/AppActions';
@@ -13,7 +15,6 @@ import Container from '../components/Container';
 import DocumentList from '../components/app/DocumentList';
 import Overlay from '../components/app/Overlay';
 import _ from 'lodash';
-import { diff } from 'deep-object-diff';
 
 /**
  * @file Class based component.
@@ -22,58 +23,57 @@ import { diff } from 'deep-object-diff';
  */
 class DocList extends Component {
   shouldComponentUpdate(nextProps) {
-    console.log(diff(nextProps, this.props))
-    let doRender = true;
-   
-    // -- Uncomment below code to stop reRendering. There are  un-necessary re-renderings on DocList and
-    // let omitProps = ['dispatch', 'breadcrumb'];
-    // Object.keys(this.props).forEach((activeProperty) => {
-    //     // console.log(`PROPS_${activeProperty}:`, this.props[activeProperty]);
-    //     // console.log(`NEXT_${activeProperty}:`, nextProps[activeProperty]); 
-    //   if (!omitProps.includes(activeProperty) && _.isEqual(nextProps[activeProperty], this[activeProperty])) {
-    //     doRender = false;
-    //   }
-    // });
+    const { query } = this.props;
+    const { query: nextQuery } = nextProps;
 
-    return doRender;
+    if (_.isEqual(query, nextQuery)) {
+      return false;
+    }
+
+    return true;
   }
 
   componentDidMount = () => {
-    const { dispatch, windowType, latestNewDocument, query } = this.props;
+    const {
+      windowId,
+      latestNewDocument,
+      query,
+      getWindowBreadcrumb,
+      setLatestNewDocument,
+      selectTableItems,
+    } = this.props;
 
-    dispatch(getWindowBreadcrumb(windowType));
+    getWindowBreadcrumb(windowId);
 
     if (latestNewDocument) {
-      dispatch(
-        selectTableItems({
-          windowType,
-          viewId: query.viewId,
-          ids: [latestNewDocument],
-        })
-      );
-      dispatch(setLatestNewDocument(null));
+      selectTableItems({
+        windowType: windowId,
+        viewId: query.viewId,
+        ids: [latestNewDocument],
+      });
+      setLatestNewDocument(null);
     }
   };
 
   componentDidUpdate = (prevProps) => {
-    const { dispatch, windowType } = this.props;
+    const { windowId, getWindowBreadcrumb } = this.props;
 
-    if (prevProps.windowType !== windowType) {
-      dispatch(getWindowBreadcrumb(windowType));
+    if (prevProps.windowId !== windowId) {
+      getWindowBreadcrumb(windowId);
     }
-    Object.keys(this.props).forEach((activeProperty) => {
-      this[activeProperty] = this.props[activeProperty];
-    });
   };
 
   /**
    * @method updateUriCallback
-   * @summary ToDo: Describe the method.
+   * @summary Update the url with query params if needed (ie add viewId, page etc)
    */
   updateUriCallback = (prop, value) => {
-    const { dispatch, query, pathname } = this.props;
+    const { updateUri, location, pathname } = this.props;
+    const query = qs.parse(location.search, {
+      ignoreQueryPrefix: true,
+    });
 
-    dispatch(updateUri(pathname, query, prop, value));
+    updateUri(pathname, query, prop, value);
   };
 
   /**
@@ -87,14 +87,11 @@ class DocList extends Component {
   render() {
     console.log('RENDER');
     const {
-      windowType,
-      breadcrumb,
+      windowId,
       query,
       modal,
       rawModal,
-      pluginModal,
       overlay,
-      indicator,
       processStatus,
       includedView,
     } = this.props;
@@ -111,16 +108,8 @@ class DocList extends Component {
     return (
       <Container
         entity="documentView"
-        modal={modal}
-        rawModal={rawModal}
-        pluginModal={pluginModal}
-        breadcrumb={breadcrumb}
-        windowType={windowType}
+        windowType={windowId}
         query={query}
-        indicator={indicator}
-        processStatus={processStatus}
-        includedView={includedView}
-        showIndicator={!modal.visible && !rawModal.visible}
         masterDocumentList={this.masterDocumentList}
       >
         <Overlay data={overlay.data} showOverlay={overlay.visible} />
@@ -136,7 +125,7 @@ class DocList extends Component {
             }}
             type="grid"
             updateUri={this.updateUriCallback}
-            windowType={windowType}
+            windowType={windowId}
             refRowIds={refRowIds}
             includedView={includedView}
             inBackground={rawModal.visible}
@@ -155,7 +144,7 @@ class DocList extends Component {
                 type="includedView"
                 windowType={includedView.windowType}
                 defaultViewId={includedView.viewId}
-                parentWindowType={windowType}
+                parentWindowType={windowId}
                 parentDefaultViewId={query.viewId}
                 updateParentSelectedIds={this.handleUpdateParentSelectedIds}
                 viewProfileId={includedView.viewProfileId}
@@ -189,19 +178,20 @@ class DocList extends Component {
  * @prop {object} windowType
  */
 DocList.propTypes = {
-  breadcrumb: PropTypes.array.isRequired,
-  dispatch: PropTypes.func.isRequired,
   includedView: PropTypes.object.isRequired,
-  indicator: PropTypes.string.isRequired,
   latestNewDocument: PropTypes.any,
   modal: PropTypes.object.isRequired,
   overlay: PropTypes.object,
-  pathname: PropTypes.string.isRequired,
-  pluginModal: PropTypes.object,
   processStatus: PropTypes.string.isRequired,
   query: PropTypes.object.isRequired,
+  location: PropTypes.object.isRequired,
+  pathname: PropTypes.string.isRequired,
   rawModal: PropTypes.object.isRequired,
-  windowType: PropTypes.any,
+  windowId: PropTypes.string,
+  getWindowBreadcrumb: PropTypes.func.isRequired,
+  selectTableItems: PropTypes.func.isRequired,
+  setLatestNewDocument: PropTypes.func.isRequired,
+  updateUri: PropTypes.func.isRequired,
 };
 
 /**
@@ -209,17 +199,26 @@ DocList.propTypes = {
  * @summary ToDo: Describe the method.
  * @param {object} state
  */
-const mapStateToProps = (state) => ({
-  modal: state.windowHandler.modal,
-  rawModal: state.windowHandler.rawModal,
-  pluginModal: state.windowHandler.pluginModal,
-  overlay: state.windowHandler.overlay,
-  latestNewDocument: state.windowHandler.latestNewDocument,
-  indicator: state.windowHandler.indicator,
-  includedView: state.listHandler.includedView,
-  processStatus: state.appHandler.processStatus,
-  breadcrumb: state.menuHandler.breadcrumb,
-  pathname: state.routing.locationBeforeTransitions.pathname,
-});
+const mapStateToProps = (state) => {
+  return {
+    modal: state.windowHandler.modal,
+    rawModal: state.windowHandler.rawModal,
+    overlay: state.windowHandler.overlay,
+    latestNewDocument: state.windowHandler.latestNewDocument,
+    includedView: state.listHandler.includedView,
+    processStatus: state.appHandler.processStatus,
+    pathname: state.router.location.pathname,
+  };
+};
 
-export default connect(mapStateToProps)(DocList);
+export default withRouter(
+  connect(
+    mapStateToProps,
+    {
+      getWindowBreadcrumb,
+      selectTableItems,
+      setLatestNewDocument,
+      updateUri,
+    }
+  )(DocList)
+);

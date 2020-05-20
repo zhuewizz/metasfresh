@@ -2,8 +2,9 @@ import axios from 'axios';
 import counterpart from 'counterpart';
 import React, { Component } from 'react';
 import { Provider } from 'react-redux';
-import { browserHistory } from 'react-router';
-import { push, syncHistoryWithStore } from 'react-router-redux';
+import { createBrowserHistory } from 'history';
+import qhistory from 'qhistory';
+import { stringify, parse } from 'qs';
 
 import '../assets/css/styles.css';
 import {
@@ -20,7 +21,6 @@ import { noConnection } from '../actions/WindowActions';
 import { addPlugins } from '../actions/PluginActions';
 import PluginsRegistry from '../services/PluginsRegistry';
 import { generateHotkeys, ShortcutProvider } from '../components/keyshortcuts';
-import CustomRouter from './CustomRouter';
 import Translation from '../components/Translation';
 import NotificationHandler from '../components/notifications/NotificationHandler';
 import { LOCAL_LANG } from '../constants/Constants';
@@ -29,9 +29,13 @@ import blacklist from '../shortcuts/blacklist';
 import keymap from '../shortcuts/keymap';
 import configureStore from '../store/configureStore';
 
+import { ConnectedRouter, push } from 'connected-react-router';
+import { getRoutes } from '../routes.js';
+
 const hotkeys = generateHotkeys({ keymap, blacklist });
-export const store = configureStore(browserHistory);
-const history = syncHistoryWithStore(browserHistory, store);
+const history = qhistory(createBrowserHistory(), stringify, parse);
+
+const store = configureStore(history);
 const APP_PLUGINS = PLUGINS ? PLUGINS : [];
 
 if (window.Cypress) {
@@ -222,7 +226,13 @@ export default class App extends Component {
         <ShortcutProvider>
           <Translation>
             <NotificationHandler>
-              <CustomRouter history={history} auth={this.auth} />
+              <ConnectedRouter history={history}>
+                {getRoutes(
+                  store,
+                  this.auth,
+                  store.getState().pluginsHandler.files
+                )}
+              </ConnectedRouter>
             </NotificationHandler>
           </Translation>
         </ShortcutProvider>

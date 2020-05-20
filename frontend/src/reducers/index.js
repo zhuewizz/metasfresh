@@ -1,4 +1,4 @@
-import { routerReducer as routing } from 'react-router-redux';
+import { connectRouter } from 'connected-react-router';
 
 import appHandler from './appHandler';
 import listHandler from './listHandler';
@@ -11,7 +11,8 @@ import table from './tableHandler';
 import commentsPanel from './commentsPanel';
 import tables from './tables';
 
-export default {
+export const createRootReducer = (history) => ({
+  router: connectRouter(history),
   appHandler,
   listHandler,
   menuHandler,
@@ -22,5 +23,4 @@ export default {
   table,
   commentsPanel,
   tables,
-  routing,
-};
+});

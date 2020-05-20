@@ -2,7 +2,7 @@ import axios from 'axios';
 import Moment from 'moment';
 import MomentTZ from 'moment-timezone';
 import numeral from 'numeral';
-import { replace } from 'react-router-redux';
+import { replace } from 'connected-react-router';
 
 import * as types from '../constants/ActionTypes';
 import { LOCAL_LANG } from '../constants/Constants';
@@ -123,6 +123,7 @@ function initNumeralLocales(lang, locale) {
   }
 }
 
+// TODO: This should either be some utility or return an action
 export function languageSuccess(lang) {
   localStorage.setItem(LOCAL_LANG, lang);
   Moment.locale(lang);
@@ -130,6 +131,7 @@ export function languageSuccess(lang) {
   axios.defaults.headers.common['Accept-Language'] = lang;
 }
 
+// TODO: This should either be some utility or return an action
 export function logoutSuccess(auth) {
   auth.close();
   localStorage.removeItem('isLogged');
@@ -292,20 +294,16 @@ export function clearNotifications() {
 
 export function updateUri(pathname, query, prop, value) {
   return (dispatch) => {
-    let url = pathname + '?';
+    let url = `${pathname}?`;
 
     // add new prop or overwrite existing
     query[prop] = value;
 
     const queryKeys = Object.keys(query);
 
-    for (let i = 0; i < queryKeys.length; i++) {
-      url +=
-        queryKeys[i] +
-        '=' +
-        query[queryKeys[i]] +
-        (queryKeys.length - 1 !== i ? '&' : '');
-    }
+    queryKeys.forEach((key, idx) => {
+      url += `${key}=${query[key]}${queryKeys.length - 1 !== idx ? '&' : ''}`;
+    });
 
     dispatch(replace(url));
   };

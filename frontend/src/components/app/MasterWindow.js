@@ -103,7 +103,7 @@ export default class MasterWindow extends Component {
       master,
       push,
       location: { pathname },
-      params: { windowType, docId: documentId },
+      params: { windowId, docId: documentId },
     } = this.props;
     const { isDeleted } = this.state;
     const isDocumentNotSaved =
@@ -115,7 +115,7 @@ export default class MasterWindow extends Component {
       const result = window.confirm('Do you really want to leave?');
 
       if (result) {
-        discardNewDocument({ windowType, documentId });
+        discardNewDocument({ windowType: windowId, documentId });
       } else {
         push(pathname);
       }
@@ -252,13 +252,13 @@ export default class MasterWindow extends Component {
       addRowData,
       sortTab,
       master,
-      params: { windowType },
+      params: { windowId },
     } = this.props;
     const orderBy = (asc ? '+' : '-') + field;
     const dataId = master.docId;
 
     sortTab('master', tabId, field, asc);
-    getTabRequest(tabId, windowType, dataId, orderBy).then((res) => {
+    getTabRequest(tabId, windowId, dataId, orderBy).then((res) => {
       addRowData({ [tabId]: res }, 'master');
     });
   };
@@ -344,7 +344,7 @@ export default class MasterWindow extends Component {
         closeModalCallback={this.closeModalCallback}
         setModalTitle={this.setModalTitle}
         docActionElem={docActionElement}
-        windowType={params.windowType}
+        windowType={params.windowId}
         docId={params.docId}
         showSidelist
         showIndicator={!modal.visible}

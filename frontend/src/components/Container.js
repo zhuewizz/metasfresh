@@ -40,7 +40,6 @@ const Container = (props) => {
     children,
     query,
     attachments,
-    showIndicator,
     // TODO: We should be using indicator from the state instead of another variable
     isDocumentNotSaved,
     hideHeader,
@@ -63,6 +62,8 @@ const Container = (props) => {
   } = props;
   const pluginModalVisible = pluginModal.visible;
   let PluginModalComponent = null;
+
+  const showIndicator = !modal.visible && !rawModal.visible;
 
   if (pluginModalVisible) {
     // check if pluginModal's component is saved in the redux state
@@ -130,7 +131,6 @@ const Container = (props) => {
             modalViewId={modal.viewId}
             parentType={windowType}
             parentDataId={dataId}
-            query={query}
             viewId={query && query.viewId}
             rawModalVisible={rawModal.visible}
             indicator={indicator}
@@ -324,6 +324,14 @@ const mapStateToProps = (state, { windowType }) => {
     notfound: master.notfound,
     connectionError: state.windowHandler.connectionError || false,
     pluginComponents: state.pluginsHandler.components,
+    modal: state.windowHandler.modal,
+    rawModal: state.windowHandler.rawModal,
+    pluginModal: state.windowHandler.pluginModal,
+    indicator: state.windowHandler.indicator,
+    includedView: state.listHandler.includedView,
+    processStatus: state.appHandler.processStatus,
+    breadcrumb: state.menuHandler.breadcrumb,
+    pathname: state.router.location.pathname,
   };
 };
 

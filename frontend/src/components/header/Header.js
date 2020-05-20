@@ -2,7 +2,7 @@ import counterpart from 'counterpart';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { push } from 'react-router-redux';
+import { push } from 'connected-react-router';
 import classnames from 'classnames';
 
 import {
@@ -530,6 +530,7 @@ class Header extends Component {
    */
   redirect = (where) => {
     const { dispatch } = this.props;
+
     dispatch(push(where));
   };
 
@@ -937,7 +938,7 @@ Header.propTypes = {
 const mapStateToProps = (state) => ({
   inbox: state.appHandler.inbox,
   me: state.appHandler.me,
-  pathname: state.routing.locationBeforeTransitions.pathname,
+  pathname: state.router.location.pathname,
   plugins: state.pluginsHandler.files,
 });
 

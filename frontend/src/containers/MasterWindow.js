@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { push } from 'react-router-redux';
+import { push } from 'connected-react-router';
 import { forEach, get } from 'lodash';
 
 import { getTableId } from '../reducers/tables';
@@ -26,10 +26,6 @@ import MasterWindow from '../components/app/MasterWindow';
  * @extends Component
  */
 class MasterWindowContainer extends Component {
-  static contextTypes = {
-    router: PropTypes.object.isRequired,
-  };
-
   componentDidUpdate(prevProps) {
     const { master, modal, params, addRowData } = this.props;
 
@@ -58,7 +54,7 @@ class MasterWindowContainer extends Component {
     ) {
       const tabId = master.layout.activeTab;
 
-      getTabRequest(tabId, params.windowType, master.docId).then((tab) => {
+      getTabRequest(tabId, params.windowId, master.docId).then((tab) => {
         addRowData({ [tabId]: tab }, 'master');
       });
     }
@@ -78,7 +74,7 @@ class MasterWindowContainer extends Component {
       const { params, fireUpdateData } = this.props;
 
       fireUpdateData({
-        windowId: params.windowType,
+        windowId: params.windowId,
         documentId: params.docId,
         doNotFetchIncludedTabs: true,
       });
@@ -103,12 +99,12 @@ class MasterWindowContainer extends Component {
 
   getTabRow(tabId, rows) {
     const {
-      params: { windowType, docId },
+      params: { windowId, docId },
     } = this.props;
 
     return getRowsData({
       entity: 'window',
-      docType: windowType,
+      docType: windowId,
       docId,
       tabId: tabId,
       rows,
@@ -184,7 +180,7 @@ class MasterWindowContainer extends Component {
 
     getTabRequest(
       activeTabId,
-      params.windowType,
+      params.windowId,
       master.docId,
       sortingOrder
     ).then((tab) => addRowData({ [activeTabId]: tab }, 'master'));
@@ -193,7 +189,7 @@ class MasterWindowContainer extends Component {
   deleteTabsTables = () => {
     const {
       master: { includedTabsInfo },
-      params: { windowType, docId },
+      params: { windowId, docId },
       deleteTable,
     } = this.props;
 
@@ -203,7 +199,7 @@ class MasterWindowContainer extends Component {
 
       if (tabs) {
         tabs.forEach((tabId) => {
-          const tableId = getTableId({ windowType, docId, tabId });
+          const tableId = getTableId({ windowType: windowId, docId, tabId });
           deleteTable(tableId);
         });
       }
