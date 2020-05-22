@@ -15,7 +15,7 @@ public class X_ESR_Import extends org.compiere.model.PO implements I_ESR_Import,
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = -560601068L;
+	private static final long serialVersionUID = -1529830936L;
 
     /** Standard Constructor */
     public X_ESR_Import (Properties ctx, int ESR_Import_ID, String trxName)
@@ -27,6 +27,7 @@ public class X_ESR_Import extends org.compiere.model.PO implements I_ESR_Import,
 			setDateDoc (new Timestamp( System.currentTimeMillis() )); // @#Date@
 			setESR_Import_ID (0);
 			setIsReceipt (true); // Y
+			setIsReconciled (false); // N
 			setIsValid (false); // N
 			setProcessed (false); // N
         } */
@@ -287,6 +288,32 @@ public class X_ESR_Import extends org.compiere.model.PO implements I_ESR_Import,
 	public boolean isReceipt () 
 	{
 		Object oo = get_Value(COLUMNNAME_IsReceipt);
+		if (oo != null) 
+		{
+			 if (oo instanceof Boolean) 
+				 return ((Boolean)oo).booleanValue(); 
+			return "Y".equals(oo);
+		}
+		return false;
+	}
+
+	/** Set Abgeglichen.
+		@param IsReconciled 
+		Zeigt an ob eine Zahlung bereits mit einem Kontoauszug abgeglichen wurde
+	  */
+	@Override
+	public void setIsReconciled (boolean IsReconciled)
+	{
+		set_Value (COLUMNNAME_IsReconciled, Boolean.valueOf(IsReconciled));
+	}
+
+	/** Get Abgeglichen.
+		@return Zeigt an ob eine Zahlung bereits mit einem Kontoauszug abgeglichen wurde
+	  */
+	@Override
+	public boolean isReconciled () 
+	{
+		Object oo = get_Value(COLUMNNAME_IsReconciled);
 		if (oo != null) 
 		{
 			 if (oo instanceof Boolean) 
