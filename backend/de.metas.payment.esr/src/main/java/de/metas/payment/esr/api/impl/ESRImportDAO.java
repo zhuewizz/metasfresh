@@ -291,7 +291,7 @@ public class ESRImportDAO implements IESRImportDAO
 	{
 		return queryBL.createQueryBuilder(I_ESR_ImportLine.class, payment)
 				.addOnlyActiveRecordsFilter()
-				.addEqualsFilter(I_ESR_ImportLine.COLUMN_C_Payment_ID, payment.getC_Payment_ID())
+				.addEqualsFilter(I_ESR_ImportLine.COLUMNNAME_C_Payment_ID, payment.getC_Payment_ID())
 				//
 				.andCollect(I_ESR_ImportLine.COLUMN_ESR_Import_ID)
 				.addEqualsFilter(I_ESR_Import.COLUMN_Processed, true)
