@@ -10,6 +10,7 @@
     </formats>
     <fileSets>
         <fileSet>
+            <directory>src/main/resources-filtered/docker-compose-v1</directory>
             <outputDirectory>docker-compose-v1</outputDirectory>
             <filtered>true</filtered>
             <!--
@@ -18,7 +19,7 @@
             </excludes>
             -->
             <includes>
-                <include>**/docker-compose-v1/**/*</include>
+                <include>**/*</include>
             </includes>
         </fileSet>
     </fileSets>
