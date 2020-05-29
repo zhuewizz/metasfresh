@@ -133,6 +133,10 @@
                             <descriptors>
                                 <descriptor>src/assembly/docker-compose-v1.xml</descriptor>
                             </descriptors>
+                            <filters>
+                                <!-- this file is created by buildfile.groovy before the pom is invoked -->
+                                <filter>dockertags.properties</filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>
