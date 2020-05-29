@@ -60,22 +60,22 @@ webui:
     - /etc/timezone:/etc/timezone:ro
   #uncomment and set to URL where metasfresh will be available from browsers
   environment:
-    #- WEBAPI_URL=http://example.com:8080
+    # WEBAPI_URL=http://example.com:8080
 
     # Set the base URL for the webui-api server as seen from the client web browser.
     # Note that the webui-frontend itself does *not* need to be able to access the API;
     # It merely communicates this URL to your web browser which accesses the API directly.
-    - WEBUI_API_CLIENT_PROTOCOL: "http"
-    - WEBUI_API_CLIENT_HOST: "localhost"
-    - WEBUI_API_CLIENT_PORT: '8080'
+    WEBUI_API_CLIENT_PROTOCOL: "http"
+    WEBUI_API_CLIENT_HOST: "localhost"
+    WEBUI_API_CLIENT_PORT: '8080'
 
     # Set the base URL for the webui-api server as seen from the frontend http server.
     # I found the IP 10.0.2.202 using ipconfig on my host machine/desktop; yours might be different
-    - WEBUI_API_PROXYPASS_PROTOCOL: "http"
-    - WEBUI_API_PROXYPASS_HOST: "10.0.2.202"
-    - WEBUI_API_PROXYPASS_PORT: '8080'
+    WEBUI_API_PROXYPASS_PROTOCOL: "http"
+    WEBUI_API_PROXYPASS_HOST: "10.0.2.202"
+    WEBUI_API_PROXYPASS_PORT: '8080'
 
-    - DEBUG_CAT_NGINX_CONF_FILE: 'y' # the default, is 'n'; everything besides 'n' makes the startup script cat the nginx config file
+    DEBUG_CAT_NGINX_CONF_FILE: 'y' # the default, is 'n'; everything besides 'n' makes the startup script cat the nginx config file
 rabbitmq:
   build: rabbitmq
   expose:
