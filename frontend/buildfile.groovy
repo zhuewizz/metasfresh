@@ -8,31 +8,40 @@ import de.metas.jenkins.DockerConf
 import de.metas.jenkins.Misc
 import de.metas.jenkins.MvnConf
 
-Map build(final MvnConf mvnConf, final Map scmVars, final boolean forceBuild = false, final boolean forceSkip = false) {
+Map build(final MvnConf mvnConf,
+          final Map scmVars,
+          final boolean forceBuild = false,
+          final boolean forceSkip = false) {
   stage('Build frontend')
     {
       currentBuild.description = """${currentBuild.description}<br/>
         <h2>Frontend</h2>
       """
+      if (forceSkip) {
+        currentBuild.description = """${currentBuild.description}<p/>
+            Forced to skip.
+            """
+        echo "forced to skip frontend";
+        return;
+      }
 
-    def anyFileChanged
-    try {
-      def vgitout = sh(returnStdout: true, script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} .").trim()
-      echo "git diff output (modified files):\n>>>>>\n${vgitout}\n<<<<<"
-      anyFileChanged = !vgitout.isEmpty()
-      // see if anything at all changed in this folder
-      echo "Any file changed compared to last build: ${anyFileChanged}"
-    } catch (ignored) {
-      echo "git diff error => assume something must have changed"
-      anyFileChanged = true
-    }
+      def anyFileChanged
+      try {
+        def vgitout = sh(returnStdout: true, script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} .").trim()
+        echo "git diff output (modified files):\n>>>>>\n${vgitout}\n<<<<<"
+        anyFileChanged = !vgitout.isEmpty()
+        // see if anything at all changed in this folder
+        echo "Any file changed compared to last build: ${anyFileChanged}"
+      } catch (ignored) {
+        echo "git diff error => assume something must have changed"
+        anyFileChanged = true
+      }
 
-		if(scmVars.GIT_COMMIT && scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT && !anyFileChanged && !forceBuild)
-		{
-			currentBuild.description= """${currentBuild.description}<p/>
+      if (scmVars.GIT_COMMIT && scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT && !anyFileChanged && !forceBuild) {
+        currentBuild.description = """${currentBuild.description}<p/>
             No changes happened in frontend.
             """
-			echo "no changes happened in frontend; skip building frontend";
+        echo "no changes happened in frontend; skip building frontend";
         return;
       }
 

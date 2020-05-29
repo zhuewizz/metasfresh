@@ -6,7 +6,9 @@
 @Library('misc')
 import de.metas.jenkins.DockerConf
 
-def build(final Map scmVars, final boolean forceBuild=false, final boolean forceSkip = false)
+def build(final Map scmVars,
+          final boolean forceBuild=false,
+          final boolean forceSkip = false)
 {
 	// https://github.com/metasfresh/metasfresh/issues/2110 make version/build infos more transparent
 	//final String MF_VERSION = retrieveArtifactVersion(env.BRANCH_NAME, env.BUILD_NUMBER)
@@ -16,6 +18,13 @@ def build(final Map scmVars, final boolean forceBuild=false, final boolean force
 		currentBuild.description="""${currentBuild.description}<br/>
 				<h2>e2e</h2>
 			"""
+    if (forceSkip) {
+      currentBuild.description = """${currentBuild.description}<p/>
+            Forced to skip.
+            """
+      echo "forced to skip e2e";
+      return;
+    }
 
     def anyFileChanged
     try {
