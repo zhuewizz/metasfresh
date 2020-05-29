@@ -1,4 +1,4 @@
-FROM metasfresh/metasfresh-app:${docker-tag.metasfresh.version}
+FROM docker.metasfresh.com/metasfresh/metasfresh-app:${docker-tag.metasfresh.version}
 
 COPY sources/configs/* /opt/metasfresh/
 COPY sources/start_app.sh /opt/metasfresh/

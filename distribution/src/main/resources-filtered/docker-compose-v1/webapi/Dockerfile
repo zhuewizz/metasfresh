@@ -1,4 +1,4 @@
-FROM metasfresh/metasfresh-webapi:${docker-tag.metasfresh.version}
+FROM docker.metasfresh.com/metasfresh/metasfresh-webapi:${docker-tag.metasfresh.version}
 
 COPY sources/configs/* /opt/metasfresh-webui-api/
 COPY sources/start_webapi.sh /opt/metasfresh-webui-api/
