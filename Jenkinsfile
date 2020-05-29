@@ -44,6 +44,10 @@ properties([
 		string(defaultValue: MF_SQL_SEED_DUMP_URL_DEFAULT,
 				description: 'metasfresh database seed against which the build shall apply its migrate scripts.',
 				name: 'MF_SQL_SEED_DUMP_URL'),
+
+		booleanParam(defaultValue: true,
+				description: 'If true and the build succeeds, then clean the workspace',
+				name: 'MF_CLEAN_WORKSPACE_IF_BUILD_SUCCEEDS'),
 	]),
 	pipelineTriggers([]),
 	buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: numberOfBuildsToKeepStr)) // keep the last $numberOfBuildsToKeepStr builds
@@ -131,8 +135,10 @@ try
 				} // withMaven
 			} // withEnv
 		} // configFileProvider
-		
-		cleanWs cleanWhenAborted: false, cleanWhenFailure: false // clean up the workspace after (successfull) builds
+
+		if(params.MF_CLEAN_WORKSPACE_IF_BUILD_SUCCEEDS) {
+			cleanWs cleanWhenAborted: false, cleanWhenFailure: false // clean up the workspace after (successfull) builds
+		}
 	} // node
 	} // timestamps
 } catch(all)
