@@ -1,75 +1,76 @@
-	// note that we set a default version for this library in jenkins, so we don't have to specify it here
-	@Library('misc')
-	import de.metas.jenkins.DockerConf
-	import de.metas.jenkins.Misc
-	import de.metas.jenkins.MvnConf
+// note that we set a default version for this library in jenkins, so we don't have to specify it here
+@Library('misc')
+import de.metas.jenkins.DockerConf
+import de.metas.jenkins.Misc
+import de.metas.jenkins.MvnConf
 
-	Map build(final MvnConf mvnConf)
-	{
-		final artifactURLs = [:];
+Map build(final MvnConf mvnConf) {
+    final artifactURLs = [:];
 
-		stage('Resolve all distribution artifacts')
-				{
-					final String VERSIONS_PLUGIN='org.codehaus.mojo:versions-maven-plugin:2.7' // make sure we know which plugin version we run
+    stage('Resolve all distribution artifacts')
+            {
+                final String VERSIONS_PLUGIN = 'org.codehaus.mojo:versions-maven-plugin:2.7' // make sure we know which plugin version we run
 
-					final def misc = new de.metas.jenkins.Misc();
+                final def misc = new de.metas.jenkins.Misc();
 
-					//
-					// set the root-pom's parent pom. Although the parent pom is available via relativePath, we need it to be this build's version then the root pom is deployed to our maven-repo
-					sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode -DparentVersion=${env.MF_VERSION} ${mvnConf.resolveParams} ${VERSIONS_PLUGIN}:update-parent"
+                //
+                // set the root-pom's parent pom. Although the parent pom is available via relativePath, we need it to be this build's version then the root pom is deployed to our maven-repo
+                sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode -DparentVersion=${env.MF_VERSION} ${mvnConf.resolveParams} ${VERSIONS_PLUGIN}:update-parent"
 
-					//
-					// update the different version properties
-					final String metasfreshUpdatePropertyParam="-Dproperty=metasfresh.version -DnewVersion=LATEST"
-					sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode ${mvnConf.resolveParams} ${metasfreshUpdatePropertyParam} ${VERSIONS_PLUGIN}:update-property"
+                //
+                // update the different version properties
+                final String metasfreshUpdatePropertyParam = "-Dproperty=metasfresh.version -DnewVersion=LATEST"
+                sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode ${mvnConf.resolveParams} ${metasfreshUpdatePropertyParam} ${VERSIONS_PLUGIN}:update-property"
 
-					final String metasfreshAdminPropertyParam="-Dproperty=metasfresh-admin.version -DnewVersion=LATEST"
-					sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode ${mvnConf.resolveParams} ${metasfreshAdminPropertyParam} ${VERSIONS_PLUGIN}:update-property"
+                final String metasfreshAdminPropertyParam = "-Dproperty=metasfresh-admin.version -DnewVersion=LATEST"
+                sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode ${mvnConf.resolveParams} ${metasfreshAdminPropertyParam} ${VERSIONS_PLUGIN}:update-property"
 
-					final String metasfreshWebFrontEndUpdatePropertyParam = "-Dproperty=metasfresh-webui-frontend.version -DnewVersion=LATEST"
-					sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode ${mvnConf.resolveParams} ${metasfreshWebFrontEndUpdatePropertyParam} ${VERSIONS_PLUGIN}:update-property"
+                final String metasfreshWebFrontEndUpdatePropertyParam = "-Dproperty=metasfresh-webui-frontend.version -DnewVersion=LATEST"
+                sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode ${mvnConf.resolveParams} ${metasfreshWebFrontEndUpdatePropertyParam} ${VERSIONS_PLUGIN}:update-property"
 
-					final String metasfreshWebApiUpdatePropertyParam = "-Dproperty=metasfresh-webui-api.version -DnewVersion=LATEST"
-					sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode ${mvnConf.resolveParams} ${metasfreshWebApiUpdatePropertyParam} ${VERSIONS_PLUGIN}:update-property"
+                final String metasfreshWebApiUpdatePropertyParam = "-Dproperty=metasfresh-webui-api.version -DnewVersion=LATEST"
+                sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode ${mvnConf.resolveParams} ${metasfreshWebApiUpdatePropertyParam} ${VERSIONS_PLUGIN}:update-property"
 
-					final String metasfreshProcurementWebuiUpdatePropertyParam = "-Dproperty=metasfresh-procurement-webui.version -DnewVersion=LATEST"
-					sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode ${mvnConf.resolveParams} ${metasfreshProcurementWebuiUpdatePropertyParam} ${VERSIONS_PLUGIN}:update-property"
+                final String metasfreshProcurementWebuiUpdatePropertyParam = "-Dproperty=metasfresh-procurement-webui.version -DnewVersion=LATEST"
+                sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode ${mvnConf.resolveParams} ${metasfreshProcurementWebuiUpdatePropertyParam} ${VERSIONS_PLUGIN}:update-property"
 
-					// set the artifact version of our pom - note that we are going to deploy the pom for the sake of downstream projects
-					sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode -DnewVersion=${MF_VERSION} -DallowSnapshots=false -DgenerateBackupPoms=true -DprocessDependencies=true -DprocessParent=true -DexcludeReactor=true ${mvnConf.resolveParams} ${VERSIONS_PLUGIN}:set"
+                // set the artifact version of our pom - note that we are going to deploy the pom for the sake of downstream projects
+                sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode -DnewVersion=${MF_VERSION} -DallowSnapshots=false -DgenerateBackupPoms=true -DprocessDependencies=true -DprocessParent=true -DexcludeReactor=true ${mvnConf.resolveParams} ${VERSIONS_PLUGIN}:set"
 
-					//
-					// we now have set the versions of metas-webui etc within the pom.xml. In order to document them, write them into a file.
-					// the file's name is app.properties, as configured in metasfresh-parent's pom.xml. Thx to http://stackoverflow.com/a/26589696/1012103
-					sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode ${mvnConf.resolveParams} org.codehaus.mojo:properties-maven-plugin:1.0.0:write-project-properties"
-					// now load those properties we got from the pom.xml.
-					final Map mavenProps = readProperties file: 'app.properties'
-					final Map urlEncodedMavenProps = misc.urlEncodeMapValues(mavenProps)
-					// echo "DONE calling misc.urlEncodeMapValues"
+                // we now have set the versions of metas-webui etc within the pom.xml. In order to document them, write them into a file.
+                // the file's name is app.properties, as configured in metasfresh-parent's pom.xml. Thx to http://stackoverflow.com/a/26589696/1012103
+                sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode ${mvnConf.resolveParams} org.codehaus.mojo:properties-maven-plugin:1.0.0:write-project-properties"
 
-					// write a properties file with the docker tags of our build's images; be used by mvn resources plugin to write out docker-compose.yml
-					misc.writeDockerTagsOfMapValues(mavenProps, env.BRANCH_NAME, 'dockertags.properties')
-					sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode ${mvnConf.resolveParams} ${mvnConf.deployParam} deploy"
+                // now load the properties we got from the pom.xml. Thx to http://stackoverflow.com/a/39644024/1012103
+                final Map mavenProps = readProperties file: 'app.properties'
+                final Map urlEncodedMavenProps = misc.urlEncodeMapValues(mavenProps)
+                // echo "DONE calling misc.urlEncodeMapValues"
 
-					artifactURLs['metasfresh-admin'] = "${mvnConf.resolveRepoURL}/de/metas/admin/metasfresh-admin/${urlEncodedMavenProps['metasfresh-admin.version']}/metasfresh-admin-${urlEncodedMavenProps['metasfresh-admin.version']}.jar"
-			artifactURLs['metasfresh-dist'] = "${mvnConf.deployRepoURL}/de/metas/dist/metasfresh-dist-dist/${urlEncodedMavenProps['metasfresh.version']}/metasfresh-dist-dist-${urlEncodedMavenProps['metasfresh.version']}-dist.tar.gz"
-			artifactURLs['metasfresh-dist-sql-only'] = "${mvnConf.deployRepoURL}/de/metas/dist/metasfresh-dist-dist/${urlEncodedMavenProps['metasfresh.version']}/metasfresh-dist-dist-${urlEncodedMavenProps['metasfresh.version']}-sql-only.tar.gz"
-					artifactURLs['metasfresh-procurement-webui'] = "${mvnConf.resolveRepoURL}/de/metas/procurement/de.metas.procurement.webui/${urlEncodedMavenProps['metasfresh-procurement-webui.version']}/de.metas.procurement.webui-${urlEncodedMavenProps['metasfresh-procurement-webui.version']}.jar"
-					artifactURLs['metasfresh-webui-api'] = "${mvnConf.resolveRepoURL}/de/metas/ui/web/metasfresh-webui-api/${urlEncodedMavenProps['metasfresh.version']}/metasfresh-webui-api-${urlEncodedMavenProps['metasfresh.version']}.jar"
-					artifactURLs['metasfresh-webui-frontend'] = "${mvnConf.resolveRepoURL}/de/metas/ui/web/metasfresh-webui-frontend/${urlEncodedMavenProps['metasfresh-webui-frontend.version']}/metasfresh-webui-frontend-${urlEncodedMavenProps['metasfresh-webui-frontend.version']}.tar.gz"
-					echo "DONE populating artifactURLs"
+                // write a properties file with the docker tags of our build's images; to be used by mvn resources plugin to write out docker-compose.yml
+                misc.writeDockerTagsOfMapValues(mavenProps, env.BRANCH_NAME, 'dockertags.properties')
+                sh "mvn --settings ${mvnConf.settingsFile} --file ${mvnConf.pomFile} --batch-mode ${mvnConf.resolveParams} ${mvnConf.deployParam} deploy"
 
-					final String MF_RELEASE_VERSION = misc.extractReleaseVersion(MF_VERSION)
-					// echo "DONE calling misc.extractReleaseVersion"
+                artifactURLs['metasfresh-admin'] = "${mvnConf.resolveRepoURL}/de/metas/admin/metasfresh-admin/${urlEncodedMavenProps['metasfresh-admin.version']}/metasfresh-admin-${urlEncodedMavenProps['metasfresh-admin.version']}.jar"
+                artifactURLs['metasfresh-dist'] = "${mvnConf.deployRepoURL}/de/metas/dist/metasfresh-dist-dist/${urlEncodedMavenProps['metasfresh.version']}/metasfresh-dist-dist-${urlEncodedMavenProps['metasfresh.version']}-dist.tar.gz"
+                artifactURLs['metasfresh-dist-sql-only'] = "${mvnConf.deployRepoURL}/de/metas/dist/metasfresh-dist-dist/${urlEncodedMavenProps['metasfresh.version']}/metasfresh-dist-dist-${urlEncodedMavenProps['metasfresh.version']}-sql-only.tar.gz"
+                artifactURLs['metasfresh-procurement-webui'] = "${mvnConf.resolveRepoURL}/de/metas/procurement/de.metas.procurement.webui/${urlEncodedMavenProps['metasfresh-procurement-webui.version']}/de.metas.procurement.webui-${urlEncodedMavenProps['metasfresh-procurement-webui.version']}.jar"
+                artifactURLs['metasfresh-webui-api'] = "${mvnConf.resolveRepoURL}/de/metas/ui/web/metasfresh-webui-api/${urlEncodedMavenProps['metasfresh.version']}/metasfresh-webui-api-${urlEncodedMavenProps['metasfresh.version']}.jar"
+                artifactURLs['metasfresh-webui-frontend'] = "${mvnConf.resolveRepoURL}/de/metas/ui/web/metasfresh-webui-frontend/${urlEncodedMavenProps['metasfresh-webui-frontend.version']}/metasfresh-webui-frontend-${urlEncodedMavenProps['metasfresh-webui-frontend.version']}.tar.gz"
+                echo "DONE populating artifactURLs"
 
-					// Note: for the rollout-job's URL with the 'parambuild' to work on this pipelined jenkins, we need the https://wiki.jenkins-ci.org/display/JENKINS/Build+With+Parameters+Plugin, and *not* version 1.3, but later.
-					// See
-					//  * https://github.com/jenkinsci/build-with-parameters-plugin/pull/10
-					//  * https://jenkins.ci.cloudbees.com/job/plugins/job/build-with-parameters-plugin/15/org.jenkins-ci.plugins$build-with-parameters/
-					String releaseLinkWithText = "	<li>..and ${misc.createReleaseLinkWithText(MF_RELEASE_VERSION, MF_VERSION, artifactURLs, null/*dockerImages*/)}</li>";
-					// echo "DONE calling misc.createReleaseLinkWithText"
+                final String MF_RELEASE_VERSION = misc.extractReleaseVersion(MF_VERSION)
+                // echo "DONE calling misc.extractReleaseVersion"
 
-					String latestE2eDockerImageName = "nexus.metasfresh.com:6001/metasfresh/metasfresh-e2e:${env.BRANCH_NAME}_LATEST"currentBuild.description="""${currentBuild.description}<p/>
+                // Note: for the rollout-job's URL with the 'parambuild' to work on this pipelined jenkins, we need the https://wiki.jenkins-ci.org/display/JENKINS/Build+With+Parameters+Plugin, and *not* version 1.3, but later.
+                // See
+                //  * https://github.com/jenkinsci/build-with-parameters-plugin/pull/10
+                //  * https://jenkins.ci.cloudbees.com/job/plugins/job/build-with-parameters-plugin/15/org.jenkins-ci.plugins$build-with-parameters/
+                String releaseLinkWithText = "	<li>..and ${misc.createReleaseLinkWithText(MF_RELEASE_VERSION, MF_VERSION, artifactURLs, null/*dockerImages*/)}</li>";
+                // echo "DONE calling misc.createReleaseLinkWithText"
+
+                String latestE2eDockerImageName = "nexus.metasfresh.com:6001/metasfresh/metasfresh-e2e:${env.BRANCH_NAME}_LATEST"
+
+                currentBuild.description = """${currentBuild.description}<p/>
 	<h2>Distribution</h2>						
 	<h3>Version infos</h3>
 	<ul>
@@ -83,7 +84,7 @@
 	<ul>
 		<li><a href=\"${artifactURLs['metasfresh-dist']}\">dist-tar.gz</a></li>
 		<li><a href=\"${artifactURLs['metasfresh-dist-sql-only']}\">sql-only-tar.gz</a></li>
-	<li><a href=\"${mvnConf.deployRepoURL}/de/metas/dist/metasfresh-dist-swingui/${urlEncodedMavenProps['metasfresh.version']}/metasfresh-dist-swingui-${urlEncodedMavenProps['metasfresh.version']}-client.zip\">client.zip</a></li>
+	    <li><a href=\"${mvnConf.deployRepoURL}/de/metas/dist/metasfresh-dist-swingui/${urlEncodedMavenProps['metasfresh.version']}/metasfresh-dist-swingui-${urlEncodedMavenProps['metasfresh.version']}-client.zip\">client.zip</a></li>
 		<li><a href=\"${artifactURLs['metasfresh-webui-api']}\">metasfresh-webui-api.jar</a></li>
 		<li><a href=\"${artifactURLs['metasfresh-webui-frontend']}\">metasfresh-webui-frontend.tar.gz</a></li>
 		<li><a href=\"${artifactURLs['metasfresh-procurement-webui']}\">metasfresh-procurement-webui.jar</a></li>
@@ -105,8 +106,8 @@
 	  <li>It is important to note that both the <i>"metasfresh-dist"</i> artifacts (client and backend server) build by this job and the <i>"webui"</i> artifacts that are also linked here are based on the same underlying metasfresh version.
 	</ul>
 	""";
-				}
-		return artifactURLs;
-	}
+            }
+    return artifactURLs;
+}
 
-	return this;
+return this;
