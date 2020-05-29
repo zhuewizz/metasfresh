@@ -18,7 +18,7 @@
             </excludes>
             -->
             <includes>
-                <include>main/resources-filtered/docker-compose-v1/**/*</include>
+                <include>**/docker-compose-v1/**/*</include>
             </includes>
         </fileSet>
     </fileSets>
