@@ -30,6 +30,7 @@ import de.metas.reflist.ReferenceId;
 import de.metas.serviceprovider.ImportQueue;
 import de.metas.serviceprovider.external.ExternalId;
 import de.metas.serviceprovider.external.label.IssueLabel;
+import de.metas.serviceprovider.external.label.IssueLabelRepository;
 import de.metas.serviceprovider.external.project.ExternalProjectType;
 import de.metas.serviceprovider.external.reference.ExternalReference;
 import de.metas.serviceprovider.external.reference.ExternalReferenceRepository;
@@ -39,12 +40,14 @@ import de.metas.serviceprovider.issue.IssueEntity;
 import de.metas.serviceprovider.issue.IssueId;
 import de.metas.serviceprovider.issue.IssueRepository;
 import de.metas.serviceprovider.issue.IssueType;
+import de.metas.serviceprovider.issue.Status;
 import de.metas.serviceprovider.issue.importer.info.ImportIssueInfo;
 import de.metas.serviceprovider.issue.importer.info.ImportIssuesRequest;
 import de.metas.serviceprovider.issue.importer.info.ImportMilestoneInfo;
 import de.metas.serviceprovider.milestone.Milestone;
 import de.metas.serviceprovider.milestone.MilestoneId;
 import de.metas.serviceprovider.milestone.MilestoneRepository;
+import de.metas.serviceprovider.timebooking.Effort;
 import de.metas.util.Loggables;
 import de.metas.util.NumberUtils;
 import lombok.NonNull;
@@ -61,6 +64,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import static de.metas.serviceprovider.issue.Status.INVOICED;
 import static de.metas.serviceprovider.issue.importer.ImportConstants.IMPORT_LOG_MESSAGE_PREFIX;
 import static de.metas.serviceprovider.model.X_S_IssueLabel.LABEL_AD_Reference_ID;
 
@@ -75,8 +79,9 @@ public class IssueImporterService
 	private final ExternalReferenceRepository externalReferenceRepository;
 	private final ITrxManager trxManager;
 	private final IADReferenceDAO referenceDAO;
+	private final IssueLabelRepository issueLabelRepository;
 
-	public IssueImporterService(final ImportQueue<ImportIssueInfo> importIssuesQueue, final MilestoneRepository milestoneRepository, final IssueRepository issueRepository, final ExternalReferenceRepository externalReferenceRepository, final ITrxManager trxManager, final IADReferenceDAO referenceDAO)
+	public IssueImporterService(final ImportQueue<ImportIssueInfo> importIssuesQueue, final MilestoneRepository milestoneRepository, final IssueRepository issueRepository, final ExternalReferenceRepository externalReferenceRepository, final ITrxManager trxManager, final IADReferenceDAO referenceDAO, final IssueLabelRepository issueLabelRepository)
 	{
 		this.importIssuesQueue = importIssuesQueue;
 		this.milestoneRepository = milestoneRepository;
@@ -84,6 +89,7 @@ public class IssueImporterService
 		this.externalReferenceRepository = externalReferenceRepository;
 		this.trxManager = trxManager;
 		this.referenceDAO = referenceDAO;
+		this.issueLabelRepository = issueLabelRepository;
 	}
 
 	public void importIssues(@NonNull final ImmutableList<ImportIssuesRequest> requestList,
@@ -120,10 +126,10 @@ public class IssueImporterService
 				importMilestone(importIssueInfo.getMilestone());
 			}
 
-			final IssueId issueId = getIssueIdByExternalId(importIssueInfo.getExternalIssueId());
+			final IssueId existingIssueId = getIssueIdByExternalId(importIssueInfo.getExternalIssueId());
 
-			final Optional<IssueEntity> existingEffortIssue = issueId != null
-					? Optional.of(issueRepository.getById(issueId, false))
+			final Optional<IssueEntity> existingEffortIssue = existingIssueId != null
+					? Optional.of(issueRepository.getById(existingIssueId))
 					: Optional.empty();
 
 			final IssueEntity issueEntity;
@@ -131,7 +137,7 @@ public class IssueImporterService
 					.map(issue -> mergeIssueInfoWithEntity(importIssueInfo, issue))
 					.orElseGet(() -> buildIssue(importIssueInfo));
 
-			issueRepository.saveWithLabels(issueEntity);
+			issueRepository.save(issueEntity);
 
 			if (!existingEffortIssue.isPresent())
 			{
@@ -146,6 +152,8 @@ public class IssueImporterService
 
 				externalReferenceRepository.save(issueExternalRef);
 			}
+
+			issueLabelRepository.persistLabels(issueEntity.getIssueId(), importIssueInfo.getIssueLabels());
 
 			importedIdsCollector.add(issueEntity.getIssueId());
 		}
@@ -209,6 +217,7 @@ public class IssueImporterService
 
 		return IssueEntity.builder()
 				.orgId(importIssueInfo.getOrgId())
+				.externalProjectReferenceId(importIssueInfo.getExternalProjectReferenceId())
 				.projectId(importIssueInfo.getProjectId())
 				.parentIssueId(parentIssueId)
 				.assigneeId(importIssueInfo.getAssigneeId())
@@ -218,13 +227,17 @@ public class IssueImporterService
 				.description(importIssueInfo.getDescription())
 				.type(IssueType.EXTERNAL)
 				.isEffortIssue(ExternalProjectType.EFFORT.equals(importIssueInfo.getExternalProjectType()))
-				.processed(importIssueInfo.isProcessed())
 				.estimatedEffort(importIssueInfo.getEstimation())
 				.budgetedEffort(importIssueInfo.getBudget())
+				.roughEstimation(importIssueInfo.getRoughEstimation())
 				.effortUomId(importIssueInfo.getEffortUomId())
 				.externalIssueNo(NumberUtils.asBigDecimal(importIssueInfo.getExternalIssueNo()))
 				.externalIssueURL(importIssueInfo.getExternalIssueURL())
-				.issueLabels(importIssueInfo.getIssueLabels())
+				.issueEffort(Effort.ZERO)
+				.aggregatedEffort(Effort.ZERO)
+				.status(importIssueInfo.getStatus())
+				.deliveryPlatform(importIssueInfo.getDeliveryPlatform())
+				.plannedUATDate(importIssueInfo.getPlannedUATDate())
 				.build();
 	}
 
@@ -240,22 +253,30 @@ public class IssueImporterService
 				? importIssueInfo.getMilestone().getMilestoneId()
 				: null;
 
+		//INVOICED can be set only from mf, after the issue was invoiced, so it should be preserved
+		final Status status = INVOICED.equals(existingEffortIssue.getStatus())
+				? INVOICED
+				: importIssueInfo.getStatus();
+
 		final IssueEntity mergedIssueEntity = existingEffortIssue
 				.toBuilder()
 				.parentIssueId(parentIssueId)
+				.externalProjectReferenceId(importIssueInfo.getExternalProjectReferenceId())
 				.projectId(importIssueInfo.getProjectId())
 				.assigneeId(importIssueInfo.getAssigneeId())
-				.processed(importIssueInfo.isProcessed())
 				.isEffortIssue(ExternalProjectType.EFFORT.equals(importIssueInfo.getExternalProjectType()))
 				.description(importIssueInfo.getDescription())
 				.externalIssueNo(NumberUtils.asBigDecimal(importIssueInfo.getExternalIssueNo()))
 				.externalIssueURL(importIssueInfo.getExternalIssueURL())
-				.issueLabels(importIssueInfo.getIssueLabels())
 				.milestoneId(milestoneId)
+				.status(status)
+				.deliveryPlatform(importIssueInfo.getDeliveryPlatform())
+				.plannedUATDate(importIssueInfo.getPlannedUATDate())
 				.build();
 
-		mergedIssueEntity.setBudgetedEffortIfNull(importIssueInfo.getBudget());
-		mergedIssueEntity.setEstimatedEffortIfNull(importIssueInfo.getEstimation());
+		mergedIssueEntity.setBudgetedEffortIfNotSet(importIssueInfo.getBudget());
+		mergedIssueEntity.setEstimatedEffortIfNotSet(importIssueInfo.getEstimation());
+		mergedIssueEntity.setRoughEstimationIfNotSet(importIssueInfo.getRoughEstimation());
 
 		return mergedIssueEntity;
 	}

@@ -281,7 +281,7 @@ class Header extends Component {
     childViewSelectedIds,
     staticModalType
   ) => {
-    const { dispatch, query } = this.props;
+    const { dispatch, viewId } = this.props;
 
     dispatch(
       openModal(
@@ -291,7 +291,7 @@ class Header extends Component {
         null,
         null,
         isAdvanced,
-        query && query.viewId,
+        viewId,
         selected,
         null,
         null,
@@ -549,12 +549,12 @@ class Header extends Component {
       showSidelist,
       inbox,
       entity,
-      query,
+      viewId,
       showIndicator,
       windowId,
       // TODO: We should be using indicator from the state instead of another variable
       isDocumentNotSaved,
-      notfound,
+      notFound,
       docId,
       me,
       editmode,
@@ -790,12 +790,11 @@ class Header extends Component {
             redirect={this.redirect}
             disableOnClickOutside={!isSubheaderShow}
             breadcrumb={breadcrumb}
-            notfound={notfound}
-            query={query}
+            notfound={notFound}
             entity={entity}
             dataId={dataId}
             windowId={windowId}
-            viewId={query && query.viewId}
+            viewId={viewId}
             siteName={siteName}
             editmode={editmode}
             handleEditModeToggle={handleEditModeToggle}
@@ -894,9 +893,9 @@ class Header extends Component {
  * @prop {object} inbox
  * @prop {bool} isDocumentNotSaved
  * @prop {object} me
- * @prop {*} notfound
+ * @prop {*} notFound
  * @prop {*} plugins
- * @prop {*} query
+ * @prop {*} viewId
  * @prop {*} showSidelist
  * @prop {*} showIndicator
  * @prop {*} siteName
@@ -920,9 +919,9 @@ Header.propTypes = {
   inbox: PropTypes.object.isRequired,
   isDocumentNotSaved: PropTypes.bool,
   me: PropTypes.object.isRequired,
-  notfound: PropTypes.any,
+  notFound: PropTypes.any,
   plugins: PropTypes.any,
-  query: PropTypes.any,
+  viewId: PropTypes.string,
   showSidelist: PropTypes.any,
   showIndicator: PropTypes.any,
   siteName: PropTypes.any,

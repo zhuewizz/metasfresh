@@ -34,7 +34,6 @@ import de.metas.issue.tracking.github.api.v3.service.GithubClient;
 import de.metas.serviceprovider.ImportQueue;
 import de.metas.serviceprovider.external.ExternalSystem;
 import de.metas.serviceprovider.external.label.IssueLabel;
-import de.metas.serviceprovider.external.label.IssueLabelRepository;
 import de.metas.serviceprovider.external.project.ExternalProjectRepository;
 import de.metas.serviceprovider.external.reference.ExternalReferenceRepository;
 import de.metas.serviceprovider.github.link.GithubIssueLinkMatcher;
@@ -62,6 +61,7 @@ import static de.metas.serviceprovider.TestConstants.MOCK_EST_4_25_LABEL;
 import static de.metas.serviceprovider.TestConstants.MOCK_EXTERNAL_ID;
 import static de.metas.serviceprovider.TestConstants.MOCK_EXTERNAL_ISSUE_NO;
 import static de.metas.serviceprovider.TestConstants.MOCK_EXTERNAL_PROJECT_OWNER;
+import static de.metas.serviceprovider.TestConstants.MOCK_EXTERNAL_PROJECT_REFERENCE_ID_ACTIVE;
 import static de.metas.serviceprovider.TestConstants.MOCK_EXTERNAL_PROJECT_TYPE;
 import static de.metas.serviceprovider.TestConstants.MOCK_EXTERNAL_REFERENCE;
 import static de.metas.serviceprovider.TestConstants.MOCK_EXTERNAL_SYSTEM;
@@ -94,7 +94,7 @@ public class GithubImporterServiceTest
 
 	private final ExternalReferenceRepository externalReferenceRepository = new ExternalReferenceRepository(queryBL);
 
-	private final IssueRepository issueRepository = new IssueRepository(queryBL, new IssueLabelRepository(queryBL), modelCacheInvalidationService);
+	private final IssueRepository issueRepository = new IssueRepository(queryBL, modelCacheInvalidationService);
 
 	private final ExternalProjectRepository externalProjectRepository = new ExternalProjectRepository(queryBL);
 
@@ -241,6 +241,7 @@ public class GithubImporterServiceTest
 	{
 		return ImportIssuesRequest
 				.builder()
+				.externalProjectReferenceId(MOCK_EXTERNAL_PROJECT_REFERENCE_ID_ACTIVE)
 				.externalProjectType(MOCK_EXTERNAL_PROJECT_TYPE)
 				.issueNoList(ImmutableList.of())
 				.oAuthToken(MOCK_AUTH_TOKEN)

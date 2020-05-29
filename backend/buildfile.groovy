@@ -90,7 +90,7 @@ Map build(final MvnConf mvnConf, final Map scmVars, final boolean forceBuild = f
                         metasfreshDistSQLOnlyURL,
                         dockerImages['dbInit'],
                         scmVars)
-                
+
                 final String dbImageDescr = dockerImages['db'] ? "<li><code>${dockerImages['db']}</code> has applied already the migration scripts from this build </li>" : "";
                 final String dbInitImageDescr = dockerImages['dbInit'] ? "<li><code>${dockerImages['dbInit']}</code> which was used to build the DB image </li>" : "";
 
@@ -122,7 +122,7 @@ String applySQLMigrationScripts(
 	try {
 		def vgitout = sh(returnStdout: true, script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} .").trim()
 		echo "git diff output (modified files):\n>>>>>\n${vgitout}\n<<<<<"
-		anyFileChanged = !vgitout.contains(".sql") // see if any .sql file changed in this folder
+		anyFileChanged = vgitout.contains(".sql") // see if any .sql file changed in this folder
 		// see if anything at all changed in this folder
 		echo "Any *.sql* file changed compared to last build: ${anyFileChanged}"
 	} catch (ignored) {
@@ -130,7 +130,7 @@ String applySQLMigrationScripts(
 		anyFileChanged = true
 	}
 
-	if(scmVars.GIT_COMMIT && scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT && !anyFileChanged)
+	if(scmVars.GIT_COMMIT && scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT && !anyFileChanged && !forceBuild)
 	{
                 echo "no *.sql changes happened; skip applying SQL migration scripts";
                 return;

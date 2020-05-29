@@ -31,6 +31,8 @@ import javax.annotation.Nullable;
 @Value
 public class Effort
 {
+	public final static Effort ZERO = new Effort(0);
+
 	long seconds;
 
 	@NonNull
@@ -44,7 +46,7 @@ public class Effort
 	}
 
 	@NonNull
-	public static Effort of(final long seconds)
+	public static Effort ofSeconds(final long seconds)
 	{
 		return new Effort(seconds);
 	}

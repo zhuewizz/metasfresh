@@ -5,7 +5,7 @@ import currentDevice from 'current-device';
 
 import { getItemsByProperty, nullToEmptyStrings } from './index';
 import { getSelectionInstant } from '../reducers/windowHandler';
-import { viewState } from '../reducers/viewHandler';
+import { viewState, getView } from '../reducers/viewHandler';
 import { TIME_REGEX_TEST } from '../constants/Constants';
 
 /**
@@ -16,9 +16,15 @@ const DLpropTypes = {
   // from parent
   windowType: PropTypes.string.isRequired,
   viewId: PropTypes.string,
-
-  // from <DocList>
   updateParentSelectedIds: PropTypes.func,
+  page: PropTypes.number,
+  sort: PropTypes.string,
+  defaultViewId: PropTypes.string,
+
+  // TODO: Eventually this should be renamed to `refWindowId`
+  refType: PropTypes.string,
+  refId: PropTypes.string,
+  refTabId: PropTypes.string,
 
   // from @connect
   selections: PropTypes.object.isRequired,
@@ -27,27 +33,36 @@ const DLpropTypes = {
   selected: PropTypes.array.isRequired,
   isModal: PropTypes.bool,
   inModal: PropTypes.bool,
-
-  // from @react-router
-  location: PropTypes.object.isRequired,
+  modal: PropTypes.object,
+  rawModalVisible: PropTypes.bool,
 };
 
 /**
  * @typedef {object} Props Component context
  * @prop {object} DLcontextTypes
  */
-const DLmapStateToProps = (state, { location, ...props }) => {
-  const { query } = location;
-  const identifier = props.isModal ? props.defaultViewId : props.windowType;
-  let master = state.viewHandler.views[identifier];
+const DLmapStateToProps = (state, props) => {
+  const {
+    page: queryPage,
+    sort: querySort,
+    viewId: queryViewId,
+    isModal,
+    defaultViewId,
+    windowType,
+    refType: queryRefType,
+    refId: queryRefId,
+    refTabId: queryRefTabId,
+  } = props;
+  const identifier = isModal ? defaultViewId : windowType;
+  let master = getView(state, identifier);
 
   if (!master) {
     master = viewState;
   }
 
-  const sort = master.sort ? master.sort : query.sort;
-  const page = master.page ? master.page : parseInt(query.page);
-  let viewId = master.viewId ? master.viewId : query.viewId;
+  const sort = master.sort ? master.sort : querySort;
+  const page = master.page ? master.page : parseInt(queryPage);
+  let viewId = master.viewId ? master.viewId : queryViewId;
 
   // used for modals
   if (props.defaultViewId) {
@@ -64,9 +79,10 @@ const DLmapStateToProps = (state, { location, ...props }) => {
     viewId,
     reduxData: master,
     layout: master.layout,
-    refType: query.refType,
-    refId: query.refId,
-    refTabId: query.refTabId,
+    layoutPending: master.layoutPending,
+    refType: queryRefType,
+    refId: queryRefId,
+    refTabId: queryRefTabId,
     selections: state.windowHandler.selections,
     selected: getSelectionInstant(
       state,
@@ -97,6 +113,7 @@ const DLmapStateToProps = (state, { location, ...props }) => {
         )
       : NO_SELECTION,
     modal: state.windowHandler.modal,
+    rawModalVisible: state.windowHandler.rawModal.visible,
     filters: state.filters,
     table: state.table,
   };

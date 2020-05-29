@@ -11,6 +11,7 @@ import {
   deleteStaticFilter,
   getViewRowsByIds,
 } from '../../../api';
+import { getTableId } from '../../../reducers/tables';
 import {
   addViewLocationData,
   createView,
@@ -22,6 +23,7 @@ import {
   deleteView,
   updateViewData,
 } from '../../../actions/ViewActions';
+import { deleteTable } from '../../../actions/TableActions';
 import { clearAllFilters } from '../../../actions/FiltersActions';
 import {
   closeListIncludedView,
@@ -54,7 +56,6 @@ import {
 } from '../../../utils/documentListHelper';
 
 import DocumentList from './DocumentList';
-import withRouterAndRef from '../../hoc/WithRouterAndRef';
 
 class DocumentListContainer extends Component {
   constructor(props) {
@@ -90,12 +91,13 @@ class DocumentListContainer extends Component {
   };
 
   componentWillUnmount() {
-    const { isModal, windowType, viewId } = this.props;
+    const { isModal, windowType, viewId, deleteView, deleteTable } = this.props;
 
     this.mounted = false;
     disconnectWS.call(this);
 
-    this.props.deleteView(isModal ? viewId : windowType);
+    deleteView(isModal ? viewId : windowType);
+    deleteTable(getTableId({ windowType, viewId }));
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
@@ -115,6 +117,7 @@ class DocumentListContainer extends Component {
       viewId,
       resetView,
       clearAllFilters,
+      deleteTable,
     } = this.props;
     const { staticFilterCleared } = this.state;
 
@@ -150,8 +153,8 @@ class DocumentListContainer extends Component {
           location.hash === '#notification')) ||
       nextRefId !== refId
     ) {
-      // TODO: Check if handling reset only via middleware is enough
       resetView(windowType);
+      deleteTable(getTableId({ windowType, viewId }));
 
       this.setState(
         {
@@ -319,7 +322,7 @@ class DocumentListContainer extends Component {
         if (this.mounted) {
           const { allowedCloseActions } = response;
 
-          if (allowedCloseActions) {
+          if (allowedCloseActions && isModal) {
             updateRawModal(windowType, { allowedCloseActions });
           }
 
@@ -391,7 +394,7 @@ class DocumentListContainer extends Component {
     const { filtersActive } = this.state;
 
     createView({
-      windowId: windowType,
+      windowType,
       viewType: type,
       filters: filtersActive.toIndexedSeq().toArray(),
       refDocType: refType,
@@ -476,6 +479,7 @@ class DocumentListContainer extends Component {
       updateRawModal,
       viewId,
       isModal,
+      rawModalVisible,
     } = this.props;
 
     indicatorState('pending');
@@ -493,15 +497,15 @@ class DocumentListContainer extends Component {
       modalId = viewId;
     }
 
-    return fetchDocument(
+    return fetchDocument({
       windowType,
-      id,
+      viewId: id,
       page,
-      this.pageLength,
-      sortingQuery,
-      isModal,
-      modalId
-    )
+      pageLength: this.pageLength,
+      orderBy: sortingQuery,
+      useViewId: isModal,
+      modalId,
+    })
       .then((response) => {
         const result = response.result;
         const resultById = {};
@@ -524,6 +528,7 @@ class DocumentListContainer extends Component {
 
         const pageColumnInfosByFieldName = response.columnsByFieldName;
 
+        // https://github.com/metasfresh/me03/issues/4734
         mergeColumnInfosIntoViewRows(
           pageColumnInfosByFieldName,
           response.result
@@ -558,14 +563,16 @@ class DocumentListContainer extends Component {
             }
           });
 
-          // process modal specific
-          const { parentViewId, parentWindowId, headerProperties } = response;
+          if (rawModalVisible) {
+            // process modal specific
+            const { parentViewId, parentWindowId, headerProperties } = response;
 
-          updateRawModal(windowType, {
-            parentViewId,
-            parentWindowId,
-            headerProperties,
-          });
+            updateRawModal(windowType, {
+              parentViewId,
+              parentWindowId,
+              headerProperties,
+            });
+          }
         }
 
         indicatorState('saved');
@@ -799,6 +806,7 @@ class DocumentListContainer extends Component {
     const {
       includedView,
       layout,
+      layoutPending,
       reduxData: { rowData, pending },
     } = this.props;
     let { selected } = this.getSelected();
@@ -823,7 +831,7 @@ class DocumentListContainer extends Component {
       <DocumentList
         {...this.props}
         {...this.state}
-        triggerSpinner={layout.pending || pending}
+        triggerSpinner={layoutPending || pending}
         hasIncluded={hasIncluded}
         selectionValid={selectionValid}
         onToggleState={this.toggleState}
@@ -849,32 +857,31 @@ class DocumentListContainer extends Component {
  */
 DocumentListContainer.propTypes = { ...DLpropTypes };
 
-export default withRouterAndRef(
-  connect(
-    DLmapStateToProps,
-    {
-      resetView,
-      deleteView,
-      fetchDocument,
-      fetchLayout,
-      createView,
-      filterView,
-      setListIncludedView,
-      indicatorState,
-      closeListIncludedView,
-      setListPagination,
-      setListSorting,
-      setListId,
-      push,
-      updateRawModal,
-      selectTableItems,
-      deselectTableItems,
-      removeSelectedTableItems,
-      updateViewData,
-      fetchLocationConfig,
-      clearAllFilters,
-    },
-    null,
-    { forwardRef: true }
-  )(DocumentListContainer)
-);
+export default connect(
+  DLmapStateToProps,
+  {
+    resetView,
+    deleteView,
+    fetchDocument,
+    fetchLayout,
+    createView,
+    filterView,
+    deleteTable,
+    setListIncludedView,
+    indicatorState,
+    closeListIncludedView,
+    setListPagination,
+    setListSorting,
+    setListId,
+    push,
+    updateRawModal,
+    selectTableItems,
+    deselectTableItems,
+    removeSelectedTableItems,
+    updateViewData,
+    fetchLocationConfig,
+    clearAllFilters,
+  },
+  null,
+  { forwardRef: true }
+)(DocumentListContainer);

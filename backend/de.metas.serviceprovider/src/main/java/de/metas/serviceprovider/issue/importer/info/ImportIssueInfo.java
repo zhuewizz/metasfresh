@@ -27,8 +27,10 @@ import de.metas.organization.OrgId;
 import de.metas.project.ProjectId;
 import de.metas.serviceprovider.external.ExternalId;
 import de.metas.serviceprovider.external.label.IssueLabel;
+import de.metas.serviceprovider.external.project.ExternalProjectReferenceId;
 import de.metas.serviceprovider.external.project.ExternalProjectType;
 import de.metas.serviceprovider.issue.IssueId;
+import de.metas.serviceprovider.issue.Status;
 import de.metas.uom.UomId;
 import de.metas.user.UserId;
 import lombok.Builder;
@@ -37,6 +39,7 @@ import lombok.Value;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Value
 @Builder
@@ -44,6 +47,9 @@ public class ImportIssueInfo
 {
 	@Nullable
 	ProjectId projectId;
+
+	@NonNull
+	ExternalProjectReferenceId externalProjectReferenceId;
 
 	@NonNull
 	OrgId orgId;
@@ -57,6 +63,9 @@ public class ImportIssueInfo
 	@Nullable
 	BigDecimal budget;
 
+	@Nullable
+	BigDecimal roughEstimation;
+
 	@NonNull
 	UomId effortUomId;
 
@@ -66,7 +75,14 @@ public class ImportIssueInfo
 	@Nullable
 	String description;
 
-	boolean processed;
+	@Nullable
+	Status status;
+
+	@Nullable
+	String deliveryPlatform;
+
+	@Nullable
+	LocalDate plannedUATDate;
 
 	@Nullable
 	UserId assigneeId;
