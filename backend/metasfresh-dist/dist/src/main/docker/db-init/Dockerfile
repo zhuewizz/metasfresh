@@ -9,14 +9,11 @@ MAINTAINER dev@metasfresh.com
 ARG CACHEBUST=1
 
 RUN apt -y update \
-    && apt -y upgrade \
     && apt -y install curl \
 # install openjdk so that we can run mg migrate from within the provisioning script
     && apt -y install libcups2 \
     && apt -y install openjdk-8-jre-headless \
-    && apt -y install dos2unix \
-    && apt -y autoremove \
-    && apt -y clean
+    && apt -y install dos2unix
 
 COPY provision_metasfresh_db.sh /docker-entrypoint-initdb.d/provision_metasfresh_db.sh
 

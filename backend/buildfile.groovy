@@ -87,22 +87,14 @@ Map build(final MvnConf mvnConf,
                         .withWorkDir('metasfresh-dist/dist/target/docker/app')
                 dockerImages['app'] = dockerBuildAndPush(appDockerConf)
 
-                // postgres DB init container
-                final DockerConf dbInitDockerConf = reportDockerConf
-                        .withArtifactName('metasfresh-db-init-pg-9-5')
-                        .withWorkDir('metasfresh-dist/dist/target/docker/db-init')
-                dockerImages['dbInit'] = dockerBuildAndPush(dbInitDockerConf)
-
                 // we now apply this build's migration scripts to the dbInit-container and push the result of that as well
                 final String metasfreshDistSQLOnlyURL = "${mvnConf.deployRepoURL}/de/metas/dist/metasfresh-dist-dist/${misc.urlEncode(env.MF_VERSION)}/metasfresh-dist-dist-${misc.urlEncode(env.MF_VERSION)}-sql-only.tar.gz"
                 dockerImages['db'] = applySQLMigrationScripts(
                         params.MF_SQL_SEED_DUMP_URL,
                         metasfreshDistSQLOnlyURL,
-                        dockerImages['dbInit'],
                         scmVars)
 
                 final String dbImageDescr = dockerImages['db'] ? "<li><code>${dockerImages['db']}</code> has applied already the migration scripts from this build </li>" : "";
-                final String dbInitImageDescr = dockerImages['dbInit'] ? "<li><code>${dockerImages['dbInit']}</code> which was used to build the DB image </li>" : "";
 
                 currentBuild.description = """${currentBuild.description}<br/>
 					This build created the following deployable docker images 
@@ -112,7 +104,6 @@ Map build(final MvnConf mvnConf,
 					${dbImageDescr}
 					<li><code>${dockerImages['report']}</code> that can be used as <b>base image</b> for custom metasfresh-report docker images</li>
 					<li><code>${dockerImages['msv3Server']}</code></li>
-					${dbInitImageDescr}
 					</ul>
 					"""
             } // stage build Backend
@@ -123,7 +114,6 @@ Map build(final MvnConf mvnConf,
 String applySQLMigrationScripts(
         final String sqlSeedDumpURL,
         final String metasfreshDistSQLOnlyURL,
-        final String dbInitDockerImageName,
         final Map scmVars) {
     //stage('Test SQL-Migrationscripts') preparing the DB image is not a stage of its own, but part of "Build backend"
     //{
@@ -146,22 +136,15 @@ String applySQLMigrationScripts(
     }
 
     final def misc = new de.metas.jenkins.Misc()
-    final String buildSpecificTag = misc.mkDockerTag("${env.BRANCH_NAME}-${env.MF_VERSION}")
-    final String dbContainerName = "metasfresh_db-${buildSpecificTag}"
-    final String dbWithMigrationScriptsImage = "db_with_migration_scripts:${buildSpecificTag}"
-    // run the pg-init docker image and apply our migration scripts;
-    sh "docker run -e \"URL_SEED_DUMP=${sqlSeedDumpURL}\" -e \"URL_MIGRATION_SCRIPTS_PACKAGE=${metasfreshDistSQLOnlyURL}\" --name ${dbContainerName} ${dbInitDockerImageName}"
+    final String specificBuildTag = misc.mkDockerTag("${env.BRANCH_NAME}-${env.MF_VERSION}")
+    final String latestBuildTag = misc.mkDockerTag("${env.BRANCH_NAME}_LATEST")
 
-    // commit the DB that has the migration scripts, and build our metasfresh-db based on it
-    sh "docker commit ${dbContainerName} ${dbWithMigrationScriptsImage}"
-    final DockerConf dbDockerConf = new DockerConf(
-            'metasfresh-db', // artifactName
-            env.BRANCH_NAME, // branchName
-            env.MF_VERSION, // versionSuffix
-            'metasfresh-dist/dist/src/main/docker/db', // workDir
-            "--build-arg BASE_IMAGE=${dbWithMigrationScriptsImage}" // additionalBuildArgs
-    ).withPullOnBuild(false);
-    return dockerBuildAndPush(dbDockerConf)
+    docker.withRegistry("https://${DockerConf.PUSH_REGISTRY}/v2/", DockerConf.PUSH_REGISTRY_CREDENTIALS_ID)
+            {
+                sh "metasfresh-dist/dist/target/docker/build_db.sh ${specificBuildTag} ${latestBuildTag} ${sqlSeedDumpURL} ${metasfreshDistSQLOnlyURL}"
+            }
+    def props = readProperties file: 'metasfresh-dist/dist/target/docker/build_sb_result_dockerimages.properties'
+    return props['build_image']
     //}
 }
 

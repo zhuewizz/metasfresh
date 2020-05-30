@@ -1,13 +1,20 @@
+FROM postgres:9.5
 
-#
-# The base image's to use can be set from outside using
-# --build-arg BASE_IMAGE=<value>
-#
-# The default "latest" is usually the latest build from the release branch
-# It is by our convention the same as "release-latest"
-ARG BASE_IMAGE=nexus.metasfresh.com:6001/metasfresh/metasfresh-db-init-pg-9-5
+MAINTAINER dev@metasfresh.com
 
-FROM ${BASE_IMAGE}
+# to make sure that the cache is only used during one day, run docker build --build-arg CACHEBUST=$(date "+%Y-%m-%d")
+# that way we should get the latest updates since the release of our base image
+# thx to https://github.com/moby/moby/issues/1996#issuecomment-185872769
+ARG CACHEBUST=1
+
+# directory from where the "vanilla" metasfresh data is copied into this container
+#ARG DATA_DIR=./postgresql_data
+
+
+RUN apt -y update \
+    && apt -y upgrade \
+    && apt -y autoremove \
+    && apt -y clean
 
 RUN localedef -i de_DE -c -f UTF-8 -A /usr/share/locale/locale.alias de_DE.UTF-8
 RUN localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
@@ -16,6 +23,7 @@ ENV LANG=de_DE.UTF-8
 ENV LANGUAGE=en_US.UTF-8
 ENV LC_MESSAGES=en_US.UTF-8
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+COPY postgresql.conf /etc/postgresql/postgresql.conf
+COPY postgresql_data_dir /var/lib/postgresql/data/
 
-CMD ["postgres"]
+EXPOSE 5432
