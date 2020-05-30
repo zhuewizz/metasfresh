@@ -92,7 +92,8 @@ Map build(final MvnConf mvnConf,
                 dockerImages['db'] = applySQLMigrationScripts(
                         params.MF_SQL_SEED_DUMP_URL,
                         metasfreshDistSQLOnlyURL,
-                        scmVars)
+                        scmVars,
+                        forceBuild)
 
                 final String dbImageDescr = dockerImages['db'] ? "<li><code>${dockerImages['db']}</code> has applied already the migration scripts from this build </li>" : "";
 
@@ -114,7 +115,8 @@ Map build(final MvnConf mvnConf,
 String applySQLMigrationScripts(
         final String sqlSeedDumpURL,
         final String metasfreshDistSQLOnlyURL,
-        final Map scmVars) {
+        final Map scmVars,
+        final boolean forceBuild) {
     //stage('Test SQL-Migrationscripts') preparing the DB image is not a stage of its own, but part of "Build backend"
     //{
 
