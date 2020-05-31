@@ -18,7 +18,9 @@ then metasfreshDistSQLParam="";
 else metasfreshDistSQLParam="-e URL_MIGRATION_SCRIPTS_PACKAGE=$5";
 fi
 
-dir=$(pwd)
+dir=$(dirname "$0")
+
+cd $dir
 
 # create the init-image
 docker build ./db-init -t metasfresh/metasfresh-db_init:${build_tag}
