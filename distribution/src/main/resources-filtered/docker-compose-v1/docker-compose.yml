@@ -29,7 +29,16 @@ app:
     - /etc/localtime:/etc/localtime:ro
     - /etc/timezone:/etc/timezone:ro
   environment:
-    - METASFRESH_HOME=/opt/metasfresh
+    METASFRESH_HOME: "/opt/metasfresh"
+    DB_HOST: "db"
+    DB_PORT: "5432"
+    DB_NAME: "metasfresh"
+    DB_USER: "metasfresh"
+    DB_PASSWORD: "metasfresh"
+    RABBITMQ_HOST: "rabbitmq"
+    RABBITMQ_PORT: "5672"
+    RABBITMQ_USER: "metasfresh"
+    RABBITMQ_PASSWORD: "metasfresh"
 webapi:
   build: webapi
   links:
@@ -56,9 +65,9 @@ webapi:
     DB_USER: "metasfresh"
     DB_PASSWORD: "metasfresh"
     RABBITMQ_HOST: "rabbitmq"
-    RABBIT_MQ: "port"
+    RABBITMQ_PORT: "5672"
     RABBITMQ_USER: "metasfresh"
-    RABBITMQ_PASS: "metasfresh"
+    RABBITMQ_PASSWORD: "metasfresh"
 webui:
   build: webui
   links:
