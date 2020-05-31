@@ -91,9 +91,7 @@ Map build(final MvnConf mvnConf,
                 final String metasfreshDistSQLOnlyURL = "${mvnConf.deployRepoURL}/de/metas/dist/metasfresh-dist-dist/${misc.urlEncode(env.MF_VERSION)}/metasfresh-dist-dist-${misc.urlEncode(env.MF_VERSION)}-sql-only.tar.gz"
                 dockerImages['db'] = applySQLMigrationScripts(
                         params.MF_SQL_SEED_DUMP_URL,
-                        metasfreshDistSQLOnlyURL,
-                        scmVars,
-                        forceBuild)
+                        metasfreshDistSQLOnlyURL )
 
                 final String dbImageDescr = dockerImages['db'] ? "<li><code>${dockerImages['db']}</code> has applied already the migration scripts from this build </li>" : "";
 
@@ -114,28 +112,7 @@ Map build(final MvnConf mvnConf,
 
 String applySQLMigrationScripts(
         final String sqlSeedDumpURL,
-        final String metasfreshDistSQLOnlyURL,
-        final Map scmVars,
-        final boolean forceBuild) {
-    //stage('Test SQL-Migrationscripts') preparing the DB image is not a stage of its own, but part of "Build backend"
-    //{
-
-    def anyFileChanged
-    try {
-        def vgitout = sh(returnStdout: true, script: "git diff --name-only ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT} ${scmVars.GIT_COMMIT} .").trim()
-        echo "git diff output (modified files):\n>>>>>\n${vgitout}\n<<<<<"
-        anyFileChanged = vgitout.contains(".sql") // see if any .sql file changed in this folder
-        // see if anything at all changed in this folder
-        echo "Any *.sql* file changed compared to last build: ${anyFileChanged}"
-    } catch (ignored) {
-        echo "git diff error => assume something must have changed"
-        anyFileChanged = true
-    }
-
-    if (scmVars.GIT_COMMIT && scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT && !anyFileChanged && !forceBuild) {
-        echo "no *.sql changes happened; skip applying SQL migration scripts";
-        return;
-    }
+        final String metasfreshDistSQLOnlyURL) {
 
     final def misc = new de.metas.jenkins.Misc()
     final String specificBuildTag = misc.mkDockerTag("${env.BRANCH_NAME}-${env.MF_VERSION}")
@@ -147,7 +124,6 @@ String applySQLMigrationScripts(
             }
     def props = readProperties file: 'metasfresh-dist/dist/target/docker/build_sb_result_dockerimages.properties'
     return props['build_image']
-    //}
 }
 
 return this;
