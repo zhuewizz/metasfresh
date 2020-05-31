@@ -143,7 +143,7 @@ String applySQLMigrationScripts(
 
     docker.withRegistry("https://${DockerConf.PUSH_REGISTRY}/v2/", DockerConf.PUSH_REGISTRY_CREDENTIALS_ID)
             {
-                sh "metasfresh-dist/dist/target/docker/build_db.sh ${specificBuildTag} ${latestBuildTag} ${sqlSeedDumpURL} ${metasfreshDistSQLOnlyURL}"
+                sh "bash -x metasfresh-dist/dist/target/docker/build_db.sh ${specificBuildTag} ${latestBuildTag} ${sqlSeedDumpURL} ${metasfreshDistSQLOnlyURL}"
             }
     def props = readProperties file: 'metasfresh-dist/dist/target/docker/build_sb_result_dockerimages.properties'
     return props['build_image']

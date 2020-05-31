@@ -49,6 +49,16 @@ webapi:
     - ./volumes/webapi/log:/opt/metasfresh-webui-api/log:rw
     - /etc/localtime:/etc/localtime:ro
     - /etc/timezone:/etc/timezone:ro
+  environment:
+    DB_HOST: "db"
+    DB_PORT: "5432"
+    DB_NAME: "metasfresh"
+    DB_USER: "metasfresh"
+    DB_PASSWORD: "metasfresh"
+    RABBITMQ_HOST: "rabbitmq"
+    RABBIT_MQ: "port"
+    RABBITMQ_USER: "metasfresh"
+    RABBITMQ_PASS: "metasfresh"
 webui:
   build: webui
   links:
@@ -72,9 +82,9 @@ webui:
 
     # Set the base URL for the webui-api server as seen from the frontend http server.
     # I found the IP 10.0.2.202 using ipconfig on my host machine/desktop; yours might be different
-    WEBUI_API_PROXYPASS_PROTOCOL: "http"
-    WEBUI_API_PROXYPASS_HOST: "10.0.2.202"
-    WEBUI_API_PROXYPASS_PORT: '8080'
+    # WEBUI_API_PROXYPASS_PROTOCOL: "http"
+    # WEBUI_API_PROXYPASS_HOST: "10.0.2.202"
+    # WEBUI_API_PROXYPASS_PORT: '8080'
 
     DEBUG_CAT_NGINX_CONF_FILE: 'y' # the default, is 'n'; everything besides 'n' makes the startup script cat the nginx config file
 rabbitmq:

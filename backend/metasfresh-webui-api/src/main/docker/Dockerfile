@@ -31,14 +31,14 @@ RUN cd /opt/metasfresh/metasfresh-webui-api \
  && rm /opt/metasfresh/metasfresh-webui-api/metasfresh-webui-api.jar
 
 COPY configs/metasfresh.properties /opt/metasfresh/metasfresh-webui-api/
-COPY ./start_metasfresh-webui-api_docker.sh /opt/metasfresh/metasfresh-webui-api/
+COPY start_webapi.sh /opt/metasfresh/metasfresh-webui-api/
 
 # I don't understand why I have to do this. I would assume that when I commit this sh file on windows with lf eols and
 # then check it out on a linux machine, it has lf eols. But aparently it doesn't.
 # At any rate, thx to https://stackoverflow.com/a/41424794/1012103
-RUN dos2unix /opt/metasfresh/metasfresh-webui-api/start_metasfresh-webui-api_docker.sh
+RUN dos2unix /opt/metasfresh/metasfresh-webui-api/start_webapi.sh
 
 # make our start command executable
-RUN chmod 700 /opt/metasfresh/metasfresh-webui-api/start_metasfresh-webui-api_docker.sh
+RUN chmod 700 /opt/metasfresh/metasfresh-webui-api/start_webapi.sh
 
-ENTRYPOINT ["/opt/metasfresh/metasfresh-webui-api/start_metasfresh-webui-api_docker.sh"]
+ENTRYPOINT ["/opt/metasfresh/metasfresh-webui-api/start_webapi.sh"]
