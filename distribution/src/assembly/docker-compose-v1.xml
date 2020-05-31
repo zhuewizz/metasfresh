@@ -4,48 +4,18 @@
           xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.1.0 http://maven.apache.org/xsd/assembly-2.1.0.xsd">
 
     <id>docker-compose-v1</id>
-    <!-- baseDirectory>${basedir}/main/resources-filtered/docker-compose-v1</baseDirectory -->
     <formats>
         <format>zip</format>
+        <format>tar.gz</format>
     </formats>
     <fileSets>
         <fileSet>
             <directory>src/main/resources-filtered/docker-compose-v1</directory>
             <outputDirectory>docker-compose-v1</outputDirectory>
             <filtered>true</filtered>
-            <!--
-            <excludes>
-                <exclude>**/Dockerfile</exclude>
-            </excludes>
-            -->
             <includes>
                 <include>**/*</include>
             </includes>
         </fileSet>
     </fileSets>
-    <!--
-    <files>
-        <baseDirectory>${basedir}/main/resources-filtered/docker-compose-v1</baseDirectory>
-        <file>
-            <source>app/Dockerfile</source>
-            <outputDirectory></outputDirectory>
-            <filtered>true</filtered>
-        </file>
-        <file>
-			<source>db/Dockerfile</source>
-            <outputDirectory></outputDirectory>
-            <filtered>true</filtered>
-        </file>
-		<file>
-			<source>db/webapi</source>
-			<outputDirectory></outputDirectory>
-			<filtered>true</filtered>
-		</file>
-		<file>
-			<source>db/webui</source>
-			<outputDirectory></outputDirectory>
-			<filtered>true</filtered>
-		</file>
-    </files>
-    -->
 </assembly>

@@ -10,9 +10,6 @@ def build(final Map scmVars,
           final boolean forceBuild=false,
           final boolean forceSkip = false)
 {
-	// https://github.com/metasfresh/metasfresh/issues/2110 make version/build infos more transparent
-	//final String MF_VERSION = retrieveArtifactVersion(env.BRANCH_NAME, env.BUILD_NUMBER)
-	
 	stage('Build e2e')
 	{
 		currentBuild.description="""${currentBuild.description}<br/>
@@ -59,11 +56,7 @@ def build(final Map scmVars,
 			additionalBuildArgs
 		);
 		final String publishedE2eDockerImageName;
-		// stage('Build and push e2e docker image')
-		// {
-			// echo "e2eDockerConf=${e2eDockerConf.toString()}"
-			publishedE2eDockerImageName = dockerBuildAndPush(e2eDockerConf)
-		// }
+		publishedE2eDockerImageName = dockerBuildAndPush(e2eDockerConf)
 
 		final String e2eDockerImageNameNoRegistry=publishedE2eDockerImageName.substring("${e2eDockerConf.pushRegistry}/".length());
 
@@ -98,10 +91,6 @@ def build(final Map scmVars,
 	<li><a href=\"https://jenkins.metasfresh.com/job/ops/job/run_e2e_tests/parambuild/?MF_DOCKER_IMAGE_FULL_NAME=${publishedE2eDockerImageName}&MF_DOCKER_REGISTRY=&MF_DOCKER_IMAGE=&MF_UPSTREAM_BUILD_URL=${BUILD_URL}\"><b>This link</b></a> lets you jump to a job that will perform an <b>e2e-test</b> using this job's docker image.</li>
 	</ul>
 	"""
-		// // gh #968: set version and docker image name to be available to a possible upstream job that might have called us
-		// env.MF_VERSION=MF_VERSION
-		// env.MF_DOCKER_IMAGE=publishedE2eDockerImageName
-		// env.BUILD_GIT_SHA1=scmVars.GIT_COMMIT
 	} // stage
 }
 
