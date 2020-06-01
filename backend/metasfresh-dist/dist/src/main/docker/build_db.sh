@@ -4,8 +4,6 @@ set -e
 registry=$1
 build_tag=$2
 latest_tag=$3
-sql_seed_dump_URL=$4
-dist_SQL_only_URL=$5
 
 # thx to https://stackoverflow.com/a/13864829
 if [ -z ${4+x} ];
@@ -18,9 +16,11 @@ then metasfreshDistSQLParam="";
 else metasfreshDistSQLParam="-e URL_MIGRATION_SCRIPTS_PACKAGE=$5";
 fi
 
-dir=$(realpath -s $0)
 
-cd $dir
+scriptPath=$(realpath -s $0)
+scriptDir=$(dirname $scriptPath)
+
+cd ${scriptDir}
 
 # create the init-image
 docker build ./db-init -t metasfresh/metasfresh-db_init:${build_tag}
@@ -33,8 +33,8 @@ metasfresh/metasfresh-db_init:${build_tag}
 
 # copy the (binary) postgresql data which results from loading the seed dumpt and applying the SQL scripts
 # thx to https://github.com/moby/moby/issues/25245#issuecomment-365980572
-mkdir -p ${dir}/db/postgresql_data_dir
-docker cp db_init_container${build_tag}:/var/lib/postgresql/data/ ${dir}/db/postgresql_data_dir/
+mkdir -p ${scriptDir}/db/postgresql_data_dir
+docker cp db_init_container${build_tag}:/var/lib/postgresql/data/ ${scriptDir}/db/postgresql_data_dir/
 
 # create the actual database image
 docker build --build-arg CACHEBUST=$(date "+%Y-%m-%d") ./db -t metasfresh/metasfresh-db:${build_tag}
