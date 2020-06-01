@@ -16,9 +16,19 @@ then metasfreshDistSQLParam="";
 else metasfreshDistSQLParam="-e URL_MIGRATION_SCRIPTS_PACKAGE=$5";
 fi
 
-
 scriptPath=$(realpath -s $0)
 scriptDir=$(dirname $scriptPath)
+
+echo "registry=${registry}"
+echo "build_tag=${build_tag}"
+echo "latest_tag=${latest_tag}"
+echo "sqlSeedDumpParam=${sqlSeedDumpParam}"
+echo "metasfreshDistSQLParam==${metasfreshDistSQLParam=}"
+echo "scriptDir=${scriptDir}"
+
+# Builds an init-DB then loads a metasfresh dump into it and applies migration scripts from this build.
+# Then creates and pushes the actual metasfresh DB by building a new image and copying the binary postgresql data from the init-db
+# Assumes that we are already logged into the respective docker registry.
 
 cd ${scriptDir}
 
