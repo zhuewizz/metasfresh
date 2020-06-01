@@ -18,27 +18,27 @@ RUN apt update \
     && apt -y autoremove \
     && apt -y autoclean
 
-RUN mkdir -p /opt/metasfresh/metasfresh-webui-api
+RUN mkdir -p /opt/metasfresh-webui-api
 
-COPY ./metasfresh-webui-api.jar /opt/metasfresh/metasfresh-webui-api/metasfresh-webui-api.jar
+COPY ./metasfresh-webui-api.jar /opt/metasfresh-webui-api/metasfresh-webui-api.jar
 
 # Explode the uber jar to make it easier to work with the docker image; 
 # e.g. with the exploded uber jar, we can later copy or overwrite config files into the docker image that change the applications behavior.
 # Note that the skript start_materialdispo_docker.sh is adapted to the exploded jar.
 # Note2 that we need unzip; jar doesn't work, thx to https://stackoverflow.com/a/39653862/1012103
-RUN cd /opt/metasfresh/metasfresh-webui-api \
- && (unzip -q /opt/metasfresh/metasfresh-webui-api/metasfresh-webui-api.jar || echo "Ignore exit code $? because spring boot's uber jar starts with a shell script") \
- && rm /opt/metasfresh/metasfresh-webui-api/metasfresh-webui-api.jar
+RUN cd /opt/metasfresh-webui-api \
+ && (unzip -q /opt/metasfresh-webui-api/metasfresh-webui-api.jar || echo "Ignore exit code $? because spring boot's uber jar starts with a shell script") \
+ && rm /opt/metasfresh-webui-api/metasfresh-webui-api.jar
 
-COPY configs/metasfresh.properties /opt/metasfresh/metasfresh-webui-api/
-COPY start_webapi.sh /opt/metasfresh/metasfresh-webui-api/
+COPY configs/metasfresh.properties /opt/metasfresh-webui-api/
+COPY start_webapi.sh /opt/metasfresh-webui-api/
 
 # I don't understand why I have to do this. I would assume that when I commit this sh file on windows with lf eols and
 # then check it out on a linux machine, it has lf eols. But aparently it doesn't.
 # At any rate, thx to https://stackoverflow.com/a/41424794/1012103
-RUN dos2unix /opt/metasfresh/metasfresh-webui-api/start_webapi.sh
+RUN dos2unix /opt/metasfresh-webui-api/start_webapi.sh
 
 # make our start command executable
-RUN chmod 700 /opt/metasfresh/metasfresh-webui-api/start_webapi.sh
+RUN chmod 700 /opt/metasfresh-webui-api/start_webapi.sh
 
-ENTRYPOINT ["/opt/metasfresh/metasfresh-webui-api/start_webapi.sh"]
+ENTRYPOINT ["/opt/metasfresh-webui-api/start_webapi.sh"]

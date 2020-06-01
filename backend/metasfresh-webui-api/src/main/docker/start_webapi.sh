@@ -102,7 +102,7 @@ run_metasfresh()
  #local MEMORY_PARAMS="-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAM=$(( $(cat /sys/fs/cgroup/memory/memory.limit_in_bytes) * 100 / 70 )) -XX:MaxRAMFraction=1"
  local MEMORY_PARAMS="-Xmx512M"
 
- cd /opt/metasfresh/metasfresh-webui-api/ \
+ cd /opt/metasfresh-webui-api/ \
  && java \
  ${MEMORY_PARAMS} \
  -XX:+HeapDumpOnOutOfMemoryError \
@@ -111,7 +111,7 @@ run_metasfresh()
  ${rabbitmq_params} \
  ${metasfresh_admin_params} \
  ${metasfresh_db_connectionpool_params}\
- -DPropertyFile=/opt/metasfresh/metasfresh-webui-api/metasfresh.properties \
+ -DPropertyFile=/opt/metasfresh-webui-api/metasfresh.properties \
  -Djava.security.egd=file:/dev/./urandom \
  -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8789 \
  org.springframework.boot.loader.JarLauncher \
@@ -121,7 +121,7 @@ run_metasfresh()
 
 echo_variable_values
 
-set_properties /opt/metasfresh/metasfresh-webui-api/metasfresh.properties
+set_properties /opt/metasfresh-webui-api/metasfresh.properties
 
 echo "************************************************************"
 echo "Waiting for the database server to start on DB_HOST=$DB_HOST"
