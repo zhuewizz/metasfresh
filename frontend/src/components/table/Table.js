@@ -30,6 +30,7 @@ import {
   getRowsData,
   mapIncluded,
   collapsedMap,
+  getCurrentActiveLocale,
 } from '../../utils/documentListHelper';
 
 import Prompt from '../app/Prompt';
@@ -1104,6 +1105,7 @@ class Table extends Component {
       activeSort,
     } = this.props;
 
+    const activeLocale = { key: getCurrentActiveLocale() };
     const {
       selected,
       rows,
@@ -1135,6 +1137,7 @@ class Table extends Component {
         {...{
           page: this.props.page,
           entity,
+          activeLocale,
           cols,
           windowId,
           mainTable,
