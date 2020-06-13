@@ -101,7 +101,7 @@ import_dump()
 	local OUTPUT_FILE="metasfresh.pgdump"
 	curl -o $OUTPUT_FILE $url_seed_dump
 	
-	echo "Populating database with initital seed... "
+	echo "pg_restore'ing initial seed into DB... "
 	pg_restore -Fc --username "$db_user" --dbname "$db_password" $OUTPUT_FILE
 	echo "=========="
 	echo " ...done!"

@@ -23,7 +23,7 @@ ENV LANG=de_DE.UTF-8
 ENV LANGUAGE=en_US.UTF-8
 ENV LC_MESSAGES=en_US.UTF-8
 
-COPY postgresql.conf /etc/postgresql/postgresql.conf
-COPY postgresql_data_dir /var/lib/postgresql/data/
+COPY postgresql_data_dir /var/lib/postgresql/
+COPY postgresql.conf /var/lib/postgresql/data/postgresql.conf
 
 EXPOSE 5432

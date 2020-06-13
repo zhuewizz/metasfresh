@@ -1,4 +1,11 @@
 #!/bin/bash
+#
+# Builds an init-DB then loads a metasfresh dump into it and applies migration scripts from this build.
+# Then creates and pushes the actual metasfresh DB by building a new image and copying the binary postgresql data from the init-db
+# Assumes that we are already logged into the respective docker registry.
+#
+# run example:
+# build_db.sh nexus.metasfresh.com:6001 build_tag_123 build_tag_LATEST https://metasfresh.com/wp-content/releases/db_seeds/metasfresh_latest.pgdump
 set -e
 
 registry=$1
@@ -26,10 +33,6 @@ echo "sqlSeedDumpParam=${sqlSeedDumpParam}"
 echo "metasfreshDistSQLParam==${metasfreshDistSQLParam=}"
 echo "scriptDir=${scriptDir}"
 
-# Builds an init-DB then loads a metasfresh dump into it and applies migration scripts from this build.
-# Then creates and pushes the actual metasfresh DB by building a new image and copying the binary postgresql data from the init-db
-# Assumes that we are already logged into the respective docker registry.
-
 cd ${scriptDir}
 
 # create the init-image
@@ -41,7 +44,7 @@ ${sqlSeedDumpParam} \
 ${metasfreshDistSQLParam} \
 metasfresh/metasfresh-db_init:${build_tag}
 
-# copy the (binary) postgresql data which results from loading the seed dumpt and applying the SQL scripts
+# copy the (binary) postgresql data which results from loading the seed dump and applying the SQL scripts
 # thx to https://github.com/moby/moby/issues/25245#issuecomment-365980572
 mkdir -p ${scriptDir}/db/postgresql_data_dir
 docker cp db_init_container${build_tag}:/var/lib/postgresql/data/ ${scriptDir}/db/postgresql_data_dir/
