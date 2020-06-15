@@ -4,8 +4,6 @@ db:
   volumes:
     - ./volumes/db/data:/var/lib/postgresql/data
     - ./volumes/db/log:/var/log/postgresql
-    - /etc/localtime:/etc/localtime:ro
-    - /etc/timezone:/etc/timezone:ro
   environment:
     - METASFRESH_USERNAME=metasfresh
     - METASFRESH_PASSWORD=metasfresh
@@ -26,8 +24,6 @@ app:
   restart: always
   volumes:
     - ./volumes/app/log:/opt/metasfresh/log:rw
-    - /etc/localtime:/etc/localtime:ro
-    - /etc/timezone:/etc/timezone:ro
   environment:
     METASFRESH_HOME: "/opt/metasfresh"
     DB_HOST: "db"
@@ -56,8 +52,6 @@ webapi:
   restart: always
   volumes:
     - ./volumes/webapi/log:/opt/metasfresh-webui-api/log:rw
-    - /etc/localtime:/etc/localtime:ro
-    - /etc/timezone:/etc/timezone:ro
   environment:
     DB_HOST: "db"
     DB_PORT: "5432"
@@ -75,9 +69,6 @@ webui:
   ports:
     - "80:80"
   restart: always
-  volumes:
-    - /etc/localtime:/etc/localtime:ro
-    - /etc/timezone:/etc/timezone:ro
   #uncomment and set to URL where metasfresh will be available from browsers
   environment:
     # WEBAPI_URL=http://example.com:8080
@@ -103,8 +94,6 @@ rabbitmq:
   restart: always
   volumes:
     - ./volumes/rabbitmq/log:/var/log/rabbitmq/log
-    - /etc/localtime:/etc/localtime:ro
-    - /etc/timezone:/etc/timezone:ro
   environment:
     RABBITMQ_DEFAULT_USER: "metasfresh"
     RABBITMQ_DEFAULT_PASS: "metasfresh"
@@ -128,8 +117,6 @@ search:
   #   - "9300:9300"
   volumes:
     - ./volumes/search/data:/usr/share/elasticsearch/data
-    - /etc/localtime:/etc/localtime:ro
-    - /etc/timezone:/etc/timezone:ro
   environment:
     - "ES_JAVA_OPTS=-Xms128M -Xmx256m"
   restart: always
