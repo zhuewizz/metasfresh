@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import classnames from 'classnames';
-
+import TetherComponent from 'react-tether';
 import { getAttributesInstance, getLayout, patchRequest } from '../../../api';
 import { completeRequest } from '../../../actions/GenericActions';
 import {
@@ -292,33 +292,47 @@ export default class Attributes extends Component {
           'attributes-in-table': rowId,
         })}
       >
-        <button
-          tabIndex={tabIndex}
-          onClick={() => this.handleToggle(true)}
-          className={classnames(
-            'btn btn-block tag tag-lg tag-block tag-secondary pointer',
+        <TetherComponent
+          attachment="top left"
+          targetAttachment="bottom left"
+          constraints={[
             {
-              'tag-disabled': dropdown,
-              'tag-disabled disabled': readonly,
-            }
-          )}
+              to: 'scrollParent',
+            },
+            {
+              to: 'window',
+              pin: ['bottom'],
+            },
+          ]}
         >
-          {label ? label : 'Edit'}
-        </button>
-        {dropdown && (
-          <AttributesDropdown
-            {...this.props}
-            attributeType={attributeType}
-            dataId={dataId}
+          <button
             tabIndex={tabIndex}
-            onClickOutside={this.handleCompletion}
-            data={data}
-            layout={layout}
-            handlePatch={this.handlePatch}
-            handleChange={this.handleChange}
-            attrId={attrId}
-          />
-        )}
+            onClick={() => this.handleToggle(true)}
+            className={classnames(
+              'btn btn-block tag tag-lg tag-block tag-secondary pointer',
+              {
+                'tag-disabled': dropdown,
+                'tag-disabled disabled': readonly,
+              }
+            )}
+          >
+            {label ? label : 'Edit'}
+          </button>
+          {dropdown && (
+            <AttributesDropdown
+              {...this.props}
+              attributeType={attributeType}
+              dataId={dataId}
+              tabIndex={tabIndex}
+              onClickOutside={this.handleCompletion}
+              data={data}
+              layout={layout}
+              handlePatch={this.handlePatch}
+              handleChange={this.handleChange}
+              attrId={attrId}
+            />
+          )}
+        </TetherComponent>
       </div>
     );
   }
