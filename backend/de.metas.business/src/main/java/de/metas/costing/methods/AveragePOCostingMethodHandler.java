@@ -1,28 +1,6 @@
 package de.metas.costing.methods;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-
-import org.adempiere.ad.trx.api.ITrx;
-import org.adempiere.exceptions.AdempiereException;
-import org.adempiere.exceptions.DBException;
-import org.adempiere.service.ClientId;
-import org.compiere.acct.PostingExecutionException;
-import org.compiere.model.I_C_InvoiceLine;
-import org.compiere.model.I_M_InOutLine;
-import org.compiere.model.I_M_MatchInv;
-import org.compiere.util.DB;
-import org.compiere.util.TimeUtil;
-import org.springframework.stereotype.Component;
-
 import com.google.common.collect.ImmutableList;
-
 import de.metas.acct.api.AcctSchema;
 import de.metas.costing.CostAmount;
 import de.metas.costing.CostDetail;
@@ -51,6 +29,25 @@ import de.metas.quantity.Quantity;
 import de.metas.uom.UomId;
 import de.metas.util.Services;
 import lombok.NonNull;
+import org.adempiere.ad.trx.api.ITrx;
+import org.adempiere.exceptions.AdempiereException;
+import org.adempiere.exceptions.DBException;
+import org.adempiere.service.ClientId;
+import org.compiere.model.I_C_InvoiceLine;
+import org.compiere.model.I_M_InOutLine;
+import org.compiere.model.I_M_MatchInv;
+import org.compiere.util.DB;
+import org.compiere.util.TimeUtil;
+import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 
 /*
  * #%L
@@ -143,28 +140,29 @@ public class AveragePOCostingMethodHandler extends CostingMethodHandlerTemplate
 		final boolean isInboundTrx = qty.signum() > 0;
 
 		final CurrentCost currentCosts = utils.getCurrentCost(request);
-		final CostPrice currentCostPrice = currentCosts.getCostPrice();
-
-		final CostDetailCreateRequest requestEffective;
-
-		final CostAmount requestAmt = request.getAmt();
-
+		final CostDetailCreateResult result;
 		if (isInboundTrx || request.isReversal())
 		{
-			requestEffective = request;
+			//in case the amount was not provided but there is a positive qty incoming
+			//use the current cost price to calculate the amount.
+			final CostDetailCreateRequest requestEffective = request.getAmt().isZero()
+					? request.withAmount(calculateAmountBasedOnExistingPrice(request, currentCosts))
+					: request;
 
-			currentCosts.addWeightedAverage(requestAmt, qty, utils.getQuantityUOMConverter());
+			result = utils.createCostDetailRecordWithChangedCosts(requestEffective, currentCosts);
+
+			currentCosts.addWeightedAverage(requestEffective.getAmt(), qty, utils.getQuantityUOMConverter());
 		}
-		
 		else
 		{
-			final CostAmount amt = currentCostPrice.multiply(qty).roundToPrecisionIfNeeded(currentCosts.getPrecision());
-			requestEffective = request.withAmount(amt);
+			final CostPrice price = currentCosts.getCostPrice();
+			final CostAmount amt = price.multiply(qty).roundToPrecisionIfNeeded(currentCosts.getPrecision());
+			final CostDetailCreateRequest requestEffective = request.withAmount(amt);
+			result = utils.createCostDetailRecordWithChangedCosts(requestEffective, currentCosts);
 
 			currentCosts.addToCurrentQtyAndCumulate(qty, amt, utils.getQuantityUOMConverter());
 		}
 
-		final CostDetailCreateResult result = utils.createCostDetailRecordWithChangedCosts(requestEffective, currentCosts);
 		utils.saveCurrentCost(currentCosts);
 
 		return result;
@@ -379,5 +377,15 @@ public class AveragePOCostingMethodHandler extends CostingMethodHandlerTemplate
 				.qty(qty)
 				.previousAmounts(previousAmounts)
 				.build();
+	}
+
+	private CostAmount calculateAmountBasedOnExistingPrice(final CostDetailCreateRequest request, final  CurrentCost currentCosts)
+	{
+		final CostPrice price = currentCosts.getCostPrice();
+
+		//make sure we are multiplying the cost price with the qty in the correct UOM, i.e the UOM of the cost price.
+		final Quantity qtyInCostUOM = utils.getQuantityUOMConverter().convertQuantityTo(request.getQty(), request.getProductId(), currentCosts.getUomId());
+
+		return price.multiply(qtyInCostUOM).roundToPrecisionIfNeeded(currentCosts.getPrecision());
 	}
 }
