@@ -35,7 +35,6 @@ import {
 import { clearAllFilters } from '../actions/FiltersActions';
 import {
   closeListIncludedView,
-  setListIncludedView,
   setListId,
   setPagination as setListPagination,
   setSorting as setListSorting,
@@ -171,6 +170,7 @@ class DocumentListContainer extends Component {
           if (included) {
             closeListIncludedView(includedView);
           }
+
           this.fetchLayoutAndData();
         }
       );
@@ -313,21 +313,18 @@ class DocumentListContainer extends Component {
             this.createNewView();
           }
 
-          if (response.data) {
-            if (response.data.caption) {
-              setModalTitle && setModalTitle(response.data.caption);
-            }
-            if (response.data.description) {
-              setModalDescription &&
-                setModalDescription(response.data.description);
-            }
+          setModalTitle && setModalTitle(response.data.caption);
+          if (
+            response.data &&
+            response.data.description &&
+            setModalDescription
+          ) {
+            setModalDescription(response.data.description);
           }
         }
       })
-      .catch((e) => {
+      .catch(() => {
         // TODO: Should we somehow handle errors here ?
-        // eslint-disable-next-line no-console
-        console.error(e);
       });
   };
 
@@ -393,10 +390,8 @@ class DocumentListContainer extends Component {
           this.getData(viewId, page, sort);
         }
       })
-      .catch((e) => {
+      .catch(() => {
         // TODO: Should we somehow handle errors here ?
-        // eslint-disable-next-line no-console
-        console.error(e);
       });
   };
 
@@ -439,10 +434,8 @@ class DocumentListContainer extends Component {
 
         this.mounted && this.getData(newViewId, page, sort, locationAreaSearch);
       })
-      .catch((e) => {
+      .catch(() => {
         // TODO: Should we somehow handle errors here ?
-        // eslint-disable-next-line no-console
-        console.error(e);
       });
   };
 
@@ -537,10 +530,8 @@ class DocumentListContainer extends Component {
 
         indicatorState('saved');
       })
-      .catch((e) => {
+      .catch(() => {
         // TODO: Should we somehow handle errors here ?
-        // eslint-disable-next-line no-console
-        console.error(e);
       });
   };
 
@@ -791,7 +782,6 @@ export default connect(
     deleteTable,
     indicatorState,
     closeListIncludedView,
-    setListIncludedView,
     setListPagination,
     setListSorting,
     setListId,

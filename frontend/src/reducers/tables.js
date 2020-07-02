@@ -273,22 +273,6 @@ const reducer = produce((draftState, action) => {
       return;
     }
 
-    case types.CLEAR_TABLE_DATA: {
-      const { id } = action.payload;
-
-      draftState[id] = {
-        ...draftState[id],
-        rows: [],
-        selected: [],
-        collapsedRows: [],
-        collapsedParentRows: [],
-        collapsedArrayMap: [],
-        size: 0,
-      };
-
-      return;
-    }
-
     case types.COLLAPSE_TABLE_ROWS: {
       const {
         id,
