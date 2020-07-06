@@ -34,7 +34,8 @@ public class ESRReverseBookingLineMatcherTest extends ESRTestBase
 		account.setESR_RenderedAccountNo("01-062822-7");
 		save(account);
 
-		esrImport.setC_BP_BankAccount(account);
+
+		esrImport.setC_BP_BankAccount_ID(account.getC_BP_BankAccount_ID());
 		save(esrImport);
 
 		final I_C_ReferenceNo_Type refNoType = newInstance(I_C_ReferenceNo_Type.class);

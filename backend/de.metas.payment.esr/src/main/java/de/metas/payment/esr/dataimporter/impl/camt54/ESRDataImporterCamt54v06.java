@@ -19,6 +19,9 @@ import org.compiere.util.Env;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import de.metas.banking.BankAccount;
+import de.metas.banking.BankAccountId;
+import de.metas.banking.api.IBPBankAccountDAO;
 import de.metas.currency.ICurrencyDAO;
 import de.metas.i18n.IMsgBL;
 import de.metas.money.CurrencyId;
@@ -74,7 +77,7 @@ import lombok.NonNull;
  * <li><code>de.metas.payment.esr.dataimporter.impl.camt54.ESRDataImporterCamt54v06.loadXML()/code>
  * <li><code>de.metas.payment.esr.dataimporter.impl.camt54.ESRDataImporterCamt54v06.verifyTransactionCurrency(EntryTransaction8, ESRTransactionBuilder)/code>
  * <li><code>de.metas.payment.esr.dataimporter.impl.camt54.ESRDataImporterCamt54v06.extractAmountAndType(ReportEntry8, EntryTransaction8, ESRTransactionBuilder)</code>
- * </ul>	
+ * </ul>
  * For the rest, the difference is the object generated from xsd
  * 
  * <p>
@@ -90,8 +93,9 @@ import lombok.NonNull;
  * @author metas-dev <dev@metasfresh.com>
  *
  */
-public class ESRDataImporterCamt54v06 
+public class ESRDataImporterCamt54v06
 {
+	private final IBPBankAccountDAO bpBankAccountRepo = Services.get(IBPBankAccountDAO.class);
 
 	private final I_ESR_Import header;
 	private final MultiVersionStreamReaderDelegate xsr;
@@ -112,9 +116,9 @@ public class ESRDataImporterCamt54v06
 		this.header = null;
 	}
 
-	
 	/**
 	 * create ESRStatement using <code>BankToCustomerDebitCreditNotificationV06</code>
+	 * 
 	 * @param bkToCstmrDbtCdtNtfctn
 	 * @return
 	 */
@@ -147,10 +151,10 @@ public class ESRDataImporterCamt54v06
 				.ctrlQty(ctrlQtyForStatement)
 				.build();
 	}
-	
-	
+
 	/**
 	 * iterateEntryDetails for version 6 <code>BankToCustomerDebitCreditNotificationV06</code>
+	 * 
 	 * @param stmtBuilder builder to which the individual {@link ESRTransaction}s are added.
 	 * @param ctrlQty
 	 * @param ntry
@@ -195,6 +199,7 @@ public class ESRDataImporterCamt54v06
 
 	/**
 	 * iterateTransactionDetails for version 6 <code>BankToCustomerDebitCreditNotificationV06</code>
+	 * 
 	 * @param ntry
 	 * @param ntryDtl
 	 * @return
@@ -225,10 +230,10 @@ public class ESRDataImporterCamt54v06
 		}
 		return transactions;
 	}
-	
-	
+
 	/**
 	 * extractAmountAndType for version 6 <code>BankToCustomerDebitCreditNotificationV06</code>
+	 * 
 	 * @param ntry
 	 * @param txDtls
 	 * @param trxBuilder
@@ -282,7 +287,6 @@ public class ESRDataImporterCamt54v06
 		return BigDecimal.ONE.negate();
 	}
 
-	
 	/**
 	 * getRvslMultiplier for version 6 <code>BankToCustomerDebitCreditNotificationV06</code>
 	 * 
@@ -312,7 +316,7 @@ public class ESRDataImporterCamt54v06
 	/**
 	 * Verifies that the currency is consistent.
 	 * iterateTransactionDetails for version 6 <code>BankToCustomerDebitCreditNotificationV06</code>
-	 *  
+	 * 
 	 * @param txDtls
 	 * @param trxBuilder
 	 */
@@ -320,16 +324,21 @@ public class ESRDataImporterCamt54v06
 			@NonNull final EntryTransaction8 txDtls,
 			@NonNull final ESRTransactionBuilder trxBuilder)
 	{
-		if (header.getC_BP_BankAccount_ID() <= 0)
+		int bankAccountRecordId = header.getC_BP_BankAccount_ID();
+
+		if (bankAccountRecordId <= 0)
 		{
 			return; // nothing to do
+
 		}
 
 		// TODO: this does not really belong into the loader! move it to the matcher code.
 		final ActiveOrHistoricCurrencyAndAmount transactionDetailAmt = txDtls.getAmt();
 
-		final CurrencyId currencyId = CurrencyId.ofRepoId(header.getC_BP_BankAccount().getC_Currency_ID());
-		final String headerCurrencyISO = Services.get(ICurrencyDAO.class).getCurrencyCodeById(currencyId).toThreeLetterCode(); 
+		final BankAccount bankAccount = bpBankAccountRepo.getById(BankAccountId.ofRepoId(bankAccountRecordId));
+		final CurrencyId currencyId = bankAccount.getCurrencyId();
+
+		final String headerCurrencyISO = Services.get(ICurrencyDAO.class).getCurrencyCodeById(currencyId).toThreeLetterCode();
 		if (!headerCurrencyISO.equalsIgnoreCase(transactionDetailAmt.getCcy()))
 		{
 			final IMsgBL msgBL = Services.get(IMsgBL.class);
@@ -337,7 +346,7 @@ public class ESRDataImporterCamt54v06
 					new Object[] { headerCurrencyISO, transactionDetailAmt.getCcy() }));
 		}
 	}
-	
+
 	public BankToCustomerDebitCreditNotificationV06 loadXML()
 	{
 		final Document document;
@@ -351,19 +360,16 @@ public class ESRDataImporterCamt54v06
 			@SuppressWarnings("unchecked")
 			final JAXBElement<Document> e = (JAXBElement<Document>)unmarshaller.unmarshal(xsr);
 			document = e.getValue();
-			
+
 		}
-		catch (final JAXBException  e)
+		catch (final JAXBException e)
 		{
 			throw AdempiereException.wrapIfNeeded(e);
 		}
-		
-		
 
 		final BankToCustomerDebitCreditNotificationV06 bkToCstmrDbtCdtNtfctn = document.getBkToCstmrDbtCdtNtfctn();
 		return bkToCstmrDbtCdtNtfctn;
 	}
-
 
 	/**
 	 * Marshals the given {@code} into an XML string and return that as the "key".
@@ -387,7 +393,6 @@ public class ESRDataImporterCamt54v06
 		}
 	}
 
-	
 	/**
 	 * asTimestamp for version 6 <code>BankToCustomerDebitCreditNotificationV06</code>
 	 * 

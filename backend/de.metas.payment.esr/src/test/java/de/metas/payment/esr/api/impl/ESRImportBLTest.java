@@ -141,16 +141,15 @@ public class ESRImportBLTest extends ESRTestBase
 
 		final I_ESR_Import esrImport = createImport();
 
-		final I_C_BP_BankAccount account = newInstance(I_C_BP_BankAccount.class);
+		final CurrencyId currencyEUR = PlainCurrencyDAO.createCurrencyId(CurrencyCode.EUR);
 
-		account.setIsEsrAccount(true);
-		account.setAD_Org_ID(Env.getAD_Org_ID(getCtx()));
-		account.setAD_User_ID(Env.getAD_User_ID(getCtx()));
-		account.setESR_RenderedAccountNo("01-059931-0");
+		final I_C_BP_BankAccount account = createBankAccount(true,
+				Env.getAD_Org_ID(getCtx()),
+				Env.getAD_User_ID(getCtx()),
+				"01-059931-0",
+				currencyEUR);
 
-		save(account);
-
-		esrImport.setC_BP_BankAccount(account);
+		esrImport.setC_BP_BankAccount_ID(account.getC_BP_BankAccount_ID());
 
 		final I_C_ReferenceNo_Type refNoType = newInstance(I_C_ReferenceNo_Type.class);
 		refNoType.setName("InvoiceReference");
@@ -168,8 +167,6 @@ public class ESRImportBLTest extends ESRTestBase
 		final I_C_DocType type = newInstance(I_C_DocType.class);
 		type.setDocBaseType(X_C_DocType.DOCBASETYPE_ARInvoice);
 		save(type);
-
-		final CurrencyId currencyEUR = PlainCurrencyDAO.createCurrencyId(CurrencyCode.EUR);
 
 		final I_C_Invoice invoice = newInstance(I_C_Invoice.class);
 		invoice.setC_BPartner_ID(partner.getC_BPartner_ID());
@@ -246,16 +243,15 @@ public class ESRImportBLTest extends ESRTestBase
 
 		final I_ESR_Import esrImport = createImport();
 
-		final I_C_BP_BankAccount account = newInstance(I_C_BP_BankAccount.class);
+		final CurrencyId currencyEUR = PlainCurrencyDAO.createCurrencyId(CurrencyCode.EUR);
 
-		account.setIsEsrAccount(true);
-		account.setAD_Org_ID(Env.getAD_Org_ID(getCtx()));
-		account.setAD_User_ID(Env.getAD_User_ID(getCtx()));
-		account.setESR_RenderedAccountNo("01-059931-0");
+		final I_C_BP_BankAccount account = createBankAccount(true,
+				Env.getAD_Org_ID(getCtx()),
+				Env.getAD_User_ID(getCtx()),
+				"01-059931-0",
+				currencyEUR);
 
-		save(account);
-
-		esrImport.setC_BP_BankAccount(account);
+		esrImport.setC_BP_BankAccount_ID(account.getC_BP_BankAccount_ID());
 		save(esrImport);
 
 		final I_C_ReferenceNo_Type refNoType = newInstance(I_C_ReferenceNo_Type.class);
@@ -762,7 +758,6 @@ public class ESRImportBLTest extends ESRTestBase
 		payment.setAD_Org_ID(lines.get(0).getAD_Org_ID());
 		save(payment);
 
-		
 		lines.get(0).setC_Payment_ID(payment.getC_Payment_ID());
 
 		esrImportBL.updateOpenAmtAndStatusDontSave(invoice, lines);
@@ -859,7 +854,7 @@ public class ESRImportBLTest extends ESRTestBase
 
 		final I_ESR_ImportLine line1 = lines.get(0);
 		line1.setC_Payment_ID(payment.getC_Payment_ID()); // if the line has a C_Payment_ID>0 payment assigned, then we assume that ESR_LINE_1_AMOUNT is *already* allocated against the invoice and is therefore part of the
-									 // sum that makes up alreadyAllocatedAmt
+		// sum that makes up alreadyAllocatedAmt
 
 		esrImportBL.updateOpenAmtAndStatusDontSave(invoice, lines);
 
