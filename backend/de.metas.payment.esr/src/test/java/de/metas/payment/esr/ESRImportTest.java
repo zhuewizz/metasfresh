@@ -74,6 +74,7 @@ import de.metas.invoice.service.IInvoiceDAO;
 import de.metas.lock.api.ILockManager;
 import de.metas.money.CurrencyId;
 import de.metas.organization.IOrgDAO;
+import de.metas.payment.PaymentId;
 import de.metas.payment.api.IPaymentBL;
 import de.metas.payment.api.IPaymentDAO;
 import de.metas.payment.esr.actionhandler.impl.MoneyTransferedBackESRActionHandler;
@@ -141,7 +142,11 @@ public class ESRImportTest extends ESRTestBase
 		assertThat(getC_Invoice().isPaid(), is(true));
 
 		// check the created payments
-		final I_C_Payment esrLine1Payment = esrImportLine.getC_Payment();
+
+		final PaymentId esrImportLine1PaymentId = PaymentId.ofRepoIdOrNull(esrImportLine.getC_Payment_ID());
+		final I_C_Payment esrLine1Payment = esrImportLine1PaymentId == null ? null
+				: paymentDAO.getById(esrImportLine1PaymentId);
+
 		InterfaceWrapperHelper.refresh(esrLine1Payment, true);
 		assertThat(esrLine1Payment.getPayAmt(), comparesEqualTo(new BigDecimal(50)));
 		assertThat(esrLine1Payment.getC_Invoice_ID(), is(esrImportLine.getC_Invoice_ID()));
@@ -270,14 +275,19 @@ public class ESRImportTest extends ESRTestBase
 		assertThat(esrImportLine1.getC_Invoice().isPaid(), is(true));
 
 		// check the created payments - first payment
-		final I_C_Payment esrLine1Payment1 = esrImportLine1.getC_Payment();
+		final PaymentId esrImportLine1PaymentId = PaymentId.ofRepoIdOrNull(esrImportLine1.getC_Payment_ID());
+		final I_C_Payment esrLine1Payment1 = paymentDAO.getById(esrImportLine1PaymentId);
+
 		InterfaceWrapperHelper.refresh(esrLine1Payment1, true);
 		assertThat(esrLine1Payment1.getPayAmt(), comparesEqualTo(new BigDecimal(25)));
 		assertThat(esrLine1Payment1.getC_Invoice_ID(), is(esrImportLine1.getC_Invoice_ID()));
 		assertThat(esrLine1Payment1.isAllocated(), is(true));
 
 		// check the created payments - second payment
-		final I_C_Payment esrLine1Payment2 = esrImportLine2.getC_Payment();
+
+		final PaymentId esrImportLine2PaymentId = PaymentId.ofRepoIdOrNull(esrImportLine2.getC_Payment_ID());
+		final I_C_Payment esrLine1Payment2 = paymentDAO.getById(esrImportLine2PaymentId);
+
 		InterfaceWrapperHelper.refresh(esrLine1Payment2, true);
 		assertThat(esrLine1Payment2.getPayAmt(), comparesEqualTo(new BigDecimal(25)));
 		assertThat(esrLine1Payment2.getC_Invoice_ID(), is(0));
@@ -335,7 +345,10 @@ public class ESRImportTest extends ESRTestBase
 		assertThat(esrImportLine.getMatchErrorMsg(), notNullValue());
 
 		// check the created payments
-		I_C_Payment esrLine1Payment = esrImportLine.getC_Payment();
+
+		final PaymentId esrImportLine1PaymentId = PaymentId.ofRepoIdOrNull(esrImportLine.getC_Payment_ID());
+		final I_C_Payment esrLine1Payment = paymentDAO.getById(esrImportLine1PaymentId);
+
 		assertThat(esrLine1Payment.getPayAmt(), comparesEqualTo(new BigDecimal(50)));
 		assertThat(esrLine1Payment.getC_Invoice_ID(), is(0));
 		assertThat(esrLine1Payment.isAllocated(), is(false));
@@ -381,10 +394,12 @@ public class ESRImportTest extends ESRTestBase
 
 		// check the created payments
 		// reload payment
-		esrLine1Payment = esrImportLine.getC_Payment();
-		InterfaceWrapperHelper.refresh(esrLine1Payment, true);
-		assertThat(esrLine1Payment.getPayAmt(), comparesEqualTo(new BigDecimal(50)));
-		assertThat(esrLine1Payment.isAllocated(), is(true));
+		final PaymentId esrImportLine1CreatedPaymentId = PaymentId.ofRepoIdOrNull(esrImportLine.getC_Payment_ID());
+		final I_C_Payment esrLine1CreatedPayment = paymentDAO.getById(esrImportLine1CreatedPaymentId);
+
+		InterfaceWrapperHelper.refresh(esrLine1CreatedPayment, true);
+		assertThat(esrLine1CreatedPayment.getPayAmt(), comparesEqualTo(new BigDecimal(50)));
+		assertThat(esrLine1CreatedPayment.isAllocated(), is(true));
 		// shall be one allocation
 		allocLines = Services.get(IAllocationDAO.class).retrieveAllocationLines(esrImportLine.getC_Invoice());
 		assertThat(allocLines.size(), is(1));
@@ -435,7 +450,10 @@ public class ESRImportTest extends ESRTestBase
 		assertThat(esrImportLine.getESR_Document_Status(), is(X_ESR_ImportLine.ESR_DOCUMENT_STATUS_TotallyMatched));
 
 		// check the created payments
-		I_C_Payment esrLine1Payment = esrImportLine.getC_Payment();
+
+		final PaymentId esrImportLinePaymentId = PaymentId.ofRepoIdOrNull(esrImportLine.getC_Payment_ID());
+		final I_C_Payment esrLine1Payment = paymentDAO.getById(esrImportLinePaymentId);
+
 		assertThat(esrLine1Payment.getPayAmt(), comparesEqualTo(new BigDecimal(25)));
 		assertThat(esrLine1Payment.getC_Invoice_ID(), is(0));
 		assertThat(esrLine1Payment.isAllocated(), is(false));
@@ -459,11 +477,14 @@ public class ESRImportTest extends ESRTestBase
 		assertThat(esrImportLine.getESR_Invoice_Openamt(), comparesEqualTo(new BigDecimal(25)));
 
 		// check the created payments
-		esrLine1Payment = esrImportLine.getC_Payment();
-		assertThat(esrLine1Payment.getPayAmt(), comparesEqualTo(new BigDecimal(25)));
-		assertThat(esrLine1Payment.getC_Invoice_ID(), is(getC_Invoice().getC_Invoice_ID()));
-		assertThat(esrLine1Payment.isAllocated(), is(true));
-		assertThat(esrLine1Payment.getOverUnderAmt(), comparesEqualTo(new BigDecimal(-25)));
+
+		final PaymentId esrImportLineCreatedPaymentId = PaymentId.ofRepoIdOrNull(esrImportLine.getC_Payment_ID());
+		final I_C_Payment esrLine1CreatedPayment = paymentDAO.getById(esrImportLineCreatedPaymentId);
+
+		assertThat(esrLine1CreatedPayment.getPayAmt(), comparesEqualTo(new BigDecimal(25)));
+		assertThat(esrLine1CreatedPayment.getC_Invoice_ID(), is(getC_Invoice().getC_Invoice_ID()));
+		assertThat(esrLine1CreatedPayment.isAllocated(), is(true));
+		assertThat(esrLine1CreatedPayment.getOverUnderAmt(), comparesEqualTo(new BigDecimal(-25)));
 
 		final List<I_C_AllocationLine> allocLines = Services.get(IAllocationDAO.class).retrieveAllocationLines(esrImportLine.getC_Invoice());
 		assertThat(allocLines.size(), is(2));
@@ -516,7 +537,10 @@ public class ESRImportTest extends ESRTestBase
 		assertThat(esrImportLine.getESR_Document_Status(), is(X_ESR_ImportLine.ESR_DOCUMENT_STATUS_TotallyMatched));
 
 		// check the created payments
-		final I_C_Payment esrLine1Payment = esrImportLine.getC_Payment();
+
+		final PaymentId esrImportLineCreatedPaymentId = PaymentId.ofRepoIdOrNull(esrImportLine.getC_Payment_ID());
+		final I_C_Payment esrLine1Payment = paymentDAO.getById(esrImportLineCreatedPaymentId);
+
 		assertThat(esrLine1Payment.getPayAmt(), comparesEqualTo(new BigDecimal(70)));
 		assertThat(esrLine1Payment.getC_Invoice_ID(), is(0));
 		assertThat(esrLine1Payment.isAllocated(), is(false));
@@ -592,10 +616,14 @@ public class ESRImportTest extends ESRTestBase
 		assertThat(esrImportLine.isProcessed(), is(false));
 		assertThat(esrImportLine.getESR_Payment_Action(), nullValue());
 		assertThat(esrImportLine.getESR_Document_Status(), is(X_ESR_ImportLine.ESR_DOCUMENT_STATUS_TotallyMatched));
-		assertThat(esrImportLine.getC_Payment(), notNullValue());
+
+		final PaymentId esrImportLineCreatedPaymentId = PaymentId.ofRepoIdOrNull(esrImportLine.getC_Payment_ID());
+		final I_C_Payment esrLine1Payment = esrImportLineCreatedPaymentId == null ? null
+				: paymentDAO.getById(esrImportLineCreatedPaymentId);
+
+		assertThat(esrLine1Payment, notNullValue());
 
 		// check the created payments
-		final I_C_Payment esrLine1Payment = esrImportLine.getC_Payment();
 		assertThat(esrLine1Payment.getPayAmt(), comparesEqualTo(new BigDecimal(70)));
 		assertThat(esrLine1Payment.getC_Invoice_ID(), is(0));
 		assertThat(esrLine1Payment.isAllocated(), is(false));
@@ -711,7 +739,11 @@ public class ESRImportTest extends ESRTestBase
 		assertThat(esrImportLine.getMatchErrorMsg(), notNullValue());
 
 		// check the created payments
-		I_C_Payment esrLine1Payment = esrImportLine.getC_Payment();
+
+		final PaymentId esrImportLinePaymentId = PaymentId.ofRepoIdOrNull(esrImportLine.getC_Payment_ID());
+		final I_C_Payment esrLine1Payment = esrImportLinePaymentId == null ? null
+				: paymentDAO.getById(esrImportLinePaymentId);
+
 		assertThat(esrLine1Payment, nullValue());
 
 		// partner
@@ -758,10 +790,14 @@ public class ESRImportTest extends ESRTestBase
 		assertThat(esrImportLine.getESR_Document_Status(), is(X_ESR_ImportLine.ESR_DOCUMENT_STATUS_PartiallyMatched));
 
 		// check the created payments
-		esrLine1Payment = esrImportLine.getC_Payment();
-		assertThat(esrLine1Payment.getPayAmt(), comparesEqualTo(new BigDecimal(50)));
-		assertThat(esrLine1Payment.getOverUnderAmt(), comparesEqualTo(new BigDecimal(0)));
-		assertThat(esrLine1Payment.isAllocated(), is(true));
+
+		final PaymentId esrImportLineCreatedPaymentId = PaymentId.ofRepoIdOrNull(esrImportLine.getC_Payment_ID());
+		final I_C_Payment esrLine1CreatedPayment = esrImportLineCreatedPaymentId == null ? null
+				: paymentDAO.getById(esrImportLineCreatedPaymentId);
+
+		assertThat(esrLine1CreatedPayment.getPayAmt(), comparesEqualTo(new BigDecimal(50)));
+		assertThat(esrLine1CreatedPayment.getOverUnderAmt(), comparesEqualTo(new BigDecimal(0)));
+		assertThat(esrLine1CreatedPayment.isAllocated(), is(true));
 
 		// allocations
 		List<I_C_AllocationLine> allocLines = Services.get(IAllocationDAO.class).retrieveAllocationLines(esrImportLine.getC_Invoice());
@@ -850,7 +886,11 @@ public class ESRImportTest extends ESRTestBase
 		assertThat(esrImportLine.getMatchErrorMsg()).isNotNull();
 
 		// check the created payments
-		I_C_Payment esrLine1Payment = esrImportLine.getC_Payment();
+
+		final PaymentId esrImportLinePaymentId = PaymentId.ofRepoIdOrNull(esrImportLine.getC_Payment_ID());
+		final I_C_Payment esrLine1Payment = esrImportLinePaymentId == null ? null
+				: paymentDAO.getById(esrImportLinePaymentId);
+
 		assertThat(esrLine1Payment.getPayAmt(), is(esrImportLine.getAmount()));
 		assertThat(esrLine1Payment.isAllocated(), is(false));
 
@@ -891,10 +931,14 @@ public class ESRImportTest extends ESRTestBase
 		assertThat(esrImportLine.getESR_Document_Status(), is(X_ESR_ImportLine.ESR_DOCUMENT_STATUS_PartiallyMatched));
 
 		// check the created payments
-		esrLine1Payment = esrImportLine.getC_Payment();
-		assertThat(esrLine1Payment.getPayAmt(), comparesEqualTo(new BigDecimal(50)));
-		assertThat(esrLine1Payment.getOverUnderAmt(), comparesEqualTo(new BigDecimal(0)));
-		assertThat(esrLine1Payment.isAllocated(), is(true));
+
+		final PaymentId esrImportLineCreatedPaymentId = PaymentId.ofRepoIdOrNull(esrImportLine.getC_Payment_ID());
+		final I_C_Payment esrLine1CreatedPayment = esrImportLineCreatedPaymentId == null ? null
+				: paymentDAO.getById(esrImportLineCreatedPaymentId);
+
+		assertThat(esrLine1CreatedPayment.getPayAmt(), comparesEqualTo(new BigDecimal(50)));
+		assertThat(esrLine1CreatedPayment.getOverUnderAmt(), comparesEqualTo(new BigDecimal(0)));
+		assertThat(esrLine1CreatedPayment.isAllocated(), is(true));
 
 		final List<I_C_AllocationLine> allocLines = Services.get(IAllocationDAO.class).retrieveAllocationLines(inv);
 		assertThat(allocLines.size(), is(1));
@@ -981,7 +1025,10 @@ public class ESRImportTest extends ESRTestBase
 		assertThat(esrImportLine.getMatchErrorMsg(), notNullValue());
 
 		// check the created payments
-		I_C_Payment esrLine1Payment = esrImportLine.getC_Payment();
+
+		final PaymentId esrImportLinePaymentId = PaymentId.ofRepoIdOrNull(esrImportLine.getC_Payment_ID());
+		final I_C_Payment esrLine1Payment = esrImportLinePaymentId == null ? null
+				: paymentDAO.getById(esrImportLinePaymentId);
 		assertThat(esrLine1Payment.getPayAmt(), is(esrImportLine.getAmount()));
 
 		// Registrate payment action handlers.
@@ -998,11 +1045,14 @@ public class ESRImportTest extends ESRTestBase
 		assertThat(esrImportLine.getESR_Document_Status(), is(X_ESR_ImportLine.ESR_DOCUMENT_STATUS_PartiallyMatched));
 
 		// check the created payments
-		esrLine1Payment = esrImportLine.getC_Payment();
-		assertThat(esrLine1Payment.getPayAmt(), comparesEqualTo(new BigDecimal(50)));
-		assertThat(esrLine1Payment.getOverUnderAmt(), comparesEqualTo(new BigDecimal(0)));
-		assertThat(esrLine1Payment.isAutoAllocateAvailableAmt(), is(false));
-		assertThat(esrLine1Payment.isAllocated(), is(false));
+		final PaymentId esrImportLineCreatedPaymentId = PaymentId.ofRepoIdOrNull(esrImportLine.getC_Payment_ID());
+		final I_C_Payment esrLine1CreatedPayment = esrImportLineCreatedPaymentId == null ? null
+				: paymentDAO.getById(esrImportLineCreatedPaymentId);
+
+		assertThat(esrLine1CreatedPayment.getPayAmt(), comparesEqualTo(new BigDecimal(50)));
+		assertThat(esrLine1CreatedPayment.getOverUnderAmt(), comparesEqualTo(new BigDecimal(0)));
+		assertThat(esrLine1CreatedPayment.isAutoAllocateAvailableAmt(), is(false));
+		assertThat(esrLine1CreatedPayment.isAllocated(), is(false));
 
 		// esr processed
 		InterfaceWrapperHelper.refresh(esrImport, true);
@@ -1428,7 +1478,12 @@ public class ESRImportTest extends ESRTestBase
 		assertThat(msg, esrImportLine.isProcessed(), is(false));
 		assertThat(msg, esrImportLine.getC_Invoice(), nullValue());
 		assertThat(msg, esrImportLine.getC_BPartner_ID(), is(partner.getC_BPartner_ID()));
-		assertThat(msg, esrImportLine.getC_Payment(), notNullValue());
+		
+		final PaymentId esrImportLinePaymentId = PaymentId.ofRepoIdOrNull(esrImportLine.getC_Payment_ID());
+		final I_C_Payment esrLinePayment = esrImportLinePaymentId == null ? null
+				: paymentDAO.getById(esrImportLinePaymentId);
+		
+		assertThat(msg, esrLinePayment, notNullValue());
 		assertThat(esrImportLine.getImportErrorMsg(), nullValue());
 		assertThat(esrImportLine.getMatchErrorMsg(), notNullValue());
 

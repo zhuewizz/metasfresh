@@ -73,6 +73,7 @@ import de.metas.document.sequence.impl.DocumentNoBuilderFactory;
 import de.metas.interfaces.I_C_DocType;
 import de.metas.money.CurrencyId;
 import de.metas.payment.api.C_Payment_ProcessInterceptor;
+import de.metas.payment.api.IPaymentDAO;
 import de.metas.payment.esr.api.IESRImportBL;
 import de.metas.payment.esr.api.IESRImportDAO;
 import de.metas.payment.esr.api.impl.ESRImportBL;
@@ -103,6 +104,7 @@ public class ESRTestBase
 	private I_C_Invoice invoice;
 	private I_C_BPartner partner;
 
+	protected IPaymentDAO paymentDAO;
 	protected ESRImportBL esrImportBL;
 
 	@BeforeEach
@@ -114,6 +116,8 @@ public class ESRTestBase
 
 		final AttachmentEntryService attachmentEntryService = AttachmentEntryService.createInstanceForUnitTesting();
 		esrImportBL = new ESRImportBL(attachmentEntryService);
+		
+		paymentDAO = Services.get(IPaymentDAO.class);
 
 		final IDocumentNoBuilderFactory documentNoBuilderFactory = new DocumentNoBuilderFactory(Optional.empty());
 		Services.registerService(IDocumentNoBuilderFactory.class, documentNoBuilderFactory);

@@ -59,7 +59,7 @@ public interface I_ESR_Import
     public static final String COLUMNNAME_AD_Client_ID = "AD_Client_ID";
 
 	/**
-	 * Set Organisation.
+	 * Set Sektion.
 	 * Organisatorische Einheit des Mandanten
 	 *
 	 * <br>Type: Search
@@ -69,7 +69,7 @@ public interface I_ESR_Import
 	public void setAD_Org_ID (int AD_Org_ID);
 
 	/**
-	 * Get Organisation.
+	 * Get Sektion.
 	 * Organisatorische Einheit des Mandanten
 	 *
 	 * <br>Type: Search
@@ -383,6 +383,31 @@ public interface I_ESR_Import
     public static final org.adempiere.model.ModelColumn<I_ESR_Import, Object> COLUMN_IsReceipt = new org.adempiere.model.ModelColumn<I_ESR_Import, Object>(I_ESR_Import.class, "IsReceipt", null);
     /** Column name IsReceipt */
     public static final String COLUMNNAME_IsReceipt = "IsReceipt";
+
+	/**
+	 * Set Abgeglichen.
+	 * Zeigt an ob eine Zahlung bereits mit einem Kontoauszug abgeglichen wurde
+	 *
+	 * <br>Type: YesNo
+	 * <br>Mandatory: true
+	 * <br>Virtual Column: false
+	 */
+	public void setIsReconciled (boolean IsReconciled);
+
+	/**
+	 * Get Abgeglichen.
+	 * Zeigt an ob eine Zahlung bereits mit einem Kontoauszug abgeglichen wurde
+	 *
+	 * <br>Type: YesNo
+	 * <br>Mandatory: true
+	 * <br>Virtual Column: false
+	 */
+	public boolean isReconciled();
+
+    /** Column definition for IsReconciled */
+    public static final org.adempiere.model.ModelColumn<I_ESR_Import, Object> COLUMN_IsReconciled = new org.adempiere.model.ModelColumn<I_ESR_Import, Object>(I_ESR_Import.class, "IsReconciled", null);
+    /** Column name IsReconciled */
+    public static final String COLUMNNAME_IsReconciled = "IsReconciled";
 
 	/**
 	 * Set GĂĽltig.
