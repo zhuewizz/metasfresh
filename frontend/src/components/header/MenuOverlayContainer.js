@@ -1,18 +1,13 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { getWindowBreadcrumb } from '../../actions/MenuActions';
 import MenuOverlayItem from './MenuOverlayItem';
 
-class MenuOverlayContainer extends Component {
-  constructor(props) {
-    super(props);
-  }
-
+class MenuOverlayContainer extends PureComponent {
   handleClick = () => {
-    const { dispatch, handleRedirect, elementId } = this.props;
+    const { getWindowBreadcrumb, handleRedirect, elementId } = this.props;
+
     handleRedirect(elementId);
-    dispatch(getWindowBreadcrumb(elementId));
+    getWindowBreadcrumb(elementId);
   };
 
   render() {
@@ -124,7 +119,7 @@ class MenuOverlayContainer extends Component {
 }
 
 MenuOverlayContainer.propTypes = {
-  dispatch: PropTypes.func,
+  getWindowBreadcrumb: PropTypes.func,
   handleRedirect: PropTypes.func,
   handleClick: PropTypes.func,
   handleClickOnFolder: PropTypes.func,
@@ -145,4 +140,4 @@ MenuOverlayContainer.propTypes = {
   onKeyDown: PropTypes.func,
 };
 
-export default connect()(MenuOverlayContainer);
+export default MenuOverlayContainer;

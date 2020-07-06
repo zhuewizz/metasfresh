@@ -3,9 +3,11 @@ import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { push } from 'react-router-redux';
+
 import { clearAllFilters } from '../../actions/FiltersActions';
 import keymap from '../../shortcuts/keymap';
 import Tooltips from '../tooltips/Tooltips';
+
 import MenuOverlay from './MenuOverlay';
 
 /**
@@ -14,14 +16,11 @@ import MenuOverlay from './MenuOverlay';
  * @extends Component
  */
 class Breadcrumb extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      tooltipOpen: false,
-      tooltipOnFirstlevel: false,
-      tooltipOnFirstlevelPositionLeft: 0,
-    };
-  }
+  state = {
+    tooltipOpen: false,
+    tooltipOnFirstlevel: false,
+    tooltipOnFirstlevelPositionLeft: 0,
+  };
 
   /**
    * @method linkToPage

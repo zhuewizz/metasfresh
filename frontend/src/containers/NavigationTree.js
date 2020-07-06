@@ -14,6 +14,12 @@ import { openModal } from '../actions/WindowActions';
 import Container from '../components/Container';
 import MenuOverlayContainer from '../components/header/MenuOverlayContainer';
 
+const MODAL_OBJECT = {
+  modal: {},
+  rawModal: {},
+  pluginModal: {},
+};
+
 class NavigationTree extends Component {
   constructor(props) {
     super(props);
@@ -280,6 +286,7 @@ class NavigationTree extends Component {
       );
     });
   };
+
   handleClickBack = (e) => {
     e.preventDefault();
 
@@ -333,6 +340,7 @@ class NavigationTree extends Component {
                 onUpdateData={this.updateData}
                 onKeyDown={this.handleKeyDown}
                 handleClickOnFolder={this.handleDeeper}
+                back={this.handleClickBack}
                 handleRedirect={this.handleRedirect}
                 handleNewRedirect={this.handleNewRedirect}
                 {...subitem}
@@ -361,12 +369,7 @@ class NavigationTree extends Component {
 
 function mapStateToProps(state) {
   const { windowHandler } = state;
-
-  const { modal, rawModal, pluginModal } = windowHandler || {
-    modal: {},
-    rawModal: {},
-    pluginModal: {},
-  };
+  const { modal, rawModal, pluginModal } = windowHandler || MODAL_OBJECT;
 
   return {
     modal,

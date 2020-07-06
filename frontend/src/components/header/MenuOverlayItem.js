@@ -1,15 +1,11 @@
 import PropTypes from 'prop-types';
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { connect } from 'react-redux';
 
 import { getElementBreadcrumb } from '../../actions/MenuActions';
 import BookmarkButton from './BookmarkButton';
 
-class MenuOverlayItem extends Component {
-  constructor(props) {
-    super(props);
-  }
-
+class MenuOverlayItem extends PureComponent {
   componentDidMount() {
     const { query } = this.props;
     if (!query && document.getElementsByClassName('js-menu-overlay')[0]) {
@@ -145,9 +141,9 @@ class MenuOverlayItem extends Component {
   }
 
   renderBreadcrumb = (entity, elementId) => {
-    const { dispatch } = this.props;
+    const { getElementBreadcrumb } = this.props;
 
-    dispatch(getElementBreadcrumb(entity, elementId));
+    getElementBreadcrumb(entity, elementId);
   };
 
   render() {
@@ -242,7 +238,7 @@ class MenuOverlayItem extends Component {
 }
 
 MenuOverlayItem.propTypes = {
-  dispatch: PropTypes.func.isRequired,
+  getElementBreadcrumb: PropTypes.func.isRequired,
   inputElement: PropTypes.any,
   query: PropTypes.any,
   handleArrowDown: PropTypes.func,
@@ -266,4 +262,7 @@ MenuOverlayItem.propTypes = {
   children: PropTypes.node,
 };
 
-export default connect()(MenuOverlayItem);
+export default connect(
+  null,
+  { getElementBreadcrumb }
+)(MenuOverlayItem);

@@ -14,8 +14,10 @@ import {
   pathRequest,
   queryPathsRequest,
   setBreadcrumb,
+  nodePathsRequest,
 } from '../../actions/MenuActions';
 import { clearMasterData, closeModal } from '../../actions/WindowActions';
+
 import MenuOverlayContainer from './MenuOverlayContainer';
 import MenuOverlayItem from './MenuOverlayItem';
 
@@ -31,6 +33,7 @@ class MenuOverlay extends Component {
     deepSubNode: null,
     path: '',
     data: {},
+    deepNode: null,
   };
 
   /**
@@ -132,22 +135,14 @@ class MenuOverlay extends Component {
    * @param {*} entity
    */
   handleRedirect = (elementId, isNew, entity) => {
-    const { dispatch } = this.props;
+    const { closeModal, clearMasterData, push } = this.props;
 
     this.handleClickOutside();
 
-    dispatch(closeModal());
-    dispatch(clearMasterData());
+    closeModal();
+    clearMasterData();
 
-    this.props.dispatch(
-      push(
-        '/' +
-          (entity ? entity : 'window') +
-          '/' +
-          elementId +
-          (isNew ? '/new' : '')
-      )
-    );
+    push(`/${entity ? entity : 'window'}/${elementId}${isNew ? '/new' : ''}`);
   };
 
   /**
@@ -204,34 +199,78 @@ class MenuOverlay extends Component {
     );
   };
 
+  handleClick = (e) => {
+    const { closeModal, clearMasterData } = this.props;
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    closeModal();
+    clearMasterData();
+  };
+
+  handleClickDashboard = (e) => {
+    const { push, setBreadcrumb } = this.props;
+
+    this.handleClick(e);
+    setBreadcrumb([]);
+    push('/');
+  };
+
+  handleClickBranch = (e) => {
+    const { push } = this.props;
+
+    this.handleClick(e);
+    push('/sitemap');
+  };
+
+  handleDeeper = (e, nodeId) => {
+    e.preventDefault();
+
+    nodePathsRequest(nodeId, 4).then((response) => {
+      this.setState(
+        Object.assign({}, this.state, {
+          deepNode: response.data,
+        })
+      );
+    });
+  };
+
+  handleClickBack = (e) => {
+    e.preventDefault();
+
+    this.setState(
+      Object.assign({}, this.state, {
+        deepNode: null,
+      })
+    );
+  };
+
   /**
    * @method renderNavigation
    * @summary ToDo: Describe the method.
    * @param {*} node
    */
   renderNavigation = (node) => {
-    const { handleMenuOverlay, openModal, dispatch, siteName } = this.props;
+    const {
+      handleMenuOverlay,
+      openModal,
+      siteName,
+      getWindowBreadcrumb,
+    } = this.props;
+
     return (
       <div
         className="menu-overlay-container-column-wrapper js-menu-overlay"
         tabIndex={0}
-        onKeyDown={(e) => this.handleKeyDown(e)}
+        onKeyDown={this.handleKeyDown}
       >
         <div className="menu-overlay-top-spacer" />
         <div>
           <span
             className="menu-overlay-header menu-overlay-header-spaced menu-overlay-header-main pointer js-menu-header"
-            onClick={(e) => {
-              if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-              }
-
-              dispatch(closeModal());
-              dispatch(clearMasterData());
-              dispatch(setBreadcrumb([]));
-              dispatch(push('/'));
-            }}
+            onClick={this.handleClickDashboard}
             tabIndex={0}
           >
             Dashboard
@@ -241,17 +280,7 @@ class MenuOverlay extends Component {
           <div>
             <span
               className="menu-overlay-header menu-overlay-header-spaced menu-overlay-header-main pointer js-menu-header js-browse-item"
-              onClick={(e) => {
-                if (e) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }
-
-                dispatch(closeModal());
-                dispatch(clearMasterData());
-
-                dispatch(push('/sitemap'));
-              }}
+              onClick={this.handleClickBranch}
               tabIndex={0}
             >
               {counterpart.translate('window.browseTree.caption')}
@@ -271,9 +300,10 @@ class MenuOverlay extends Component {
                 parent={node}
                 printChildren={true}
                 transparentBookmarks={true}
-                back={(e) => this.handleClickBack(e)}
+                back={this.handleClickBack}
                 handleMenuOverlay={handleMenuOverlay}
                 openModal={openModal}
+                getWindowBreadcrumb={getWindowBreadcrumb}
                 {...item}
               />
             ))}
@@ -299,11 +329,12 @@ class MenuOverlay extends Component {
           parent={nodeData}
           printChildren={true}
           transparentBookmarks={true}
-          back={(e) => this.handleClickBack(e)}
+          back={this.handleClickBack}
           handleMenuOverlay={handleMenuOverlay}
           openModal={openModal}
           subNavigation={true}
           type={nodeData.type}
+          getWindowBreadcrumb={getWindowBreadcrumb}
         >
           {nodeData}
         </MenuOverlayContainer>
@@ -317,12 +348,13 @@ class MenuOverlay extends Component {
    * @param {*} item
    */
   linkClick = (item) => {
-    const { dispatch } = this.props;
+    const { getWindowBreadcrumb } = this.props;
+
     if (item.elementId && item.type == 'newRecord') {
       this.handleNewRedirect(item.elementId);
     } else if (item.elementId && item.type == 'window') {
       this.handleRedirect(item.elementId);
-      dispatch(getWindowBreadcrumb(item.elementId));
+      getWindowBreadcrumb(item.elementId);
     }
   };
 
@@ -616,7 +648,11 @@ class MenuOverlay extends Component {
  * @prop {func} [onClickOutside]
  */
 MenuOverlay.propTypes = {
-  dispatch: PropTypes.func.isRequired,
+  closeModal: PropTypes.func.isRequired,
+  clearMasterData: PropTypes.func.isRequired,
+  setBreadcrumb: PropTypes.func.isRequired,
+  getWindowBreadcrumb: PropTypes.func.isRequired,
+  push: PropTypes.func.isRequired,
   nodeId: PropTypes.any,
   node: PropTypes.any,
   handleMenuOverlay: PropTypes.any,
@@ -625,4 +661,13 @@ MenuOverlay.propTypes = {
   onClickOutside: PropTypes.func,
 };
 
-export default connect()(onClickOutside(MenuOverlay));
+export default connect(
+  null,
+  {
+    closeModal,
+    clearMasterData,
+    setBreadcrumb,
+    getWindowBreadcrumb,
+    push,
+  }
+)(onClickOutside(MenuOverlay));
